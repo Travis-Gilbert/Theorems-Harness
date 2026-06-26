@@ -40,6 +40,8 @@ The first shipped capability is a local, deterministic visibility contract:
 
 ```bash
 npm test
+npm run doctor
+node src/bin/theorems-harness.mjs doctor --json
 node src/bin/prepare-context.mjs <<'JSON'
 {"prompt":"Edit Rust code in the harness crate","cwd":"/tmp/demo","changed_files":["src/lib.rs"]}
 JSON
@@ -59,3 +61,28 @@ declares:
 
 The goal is simple: an ability is not real until it reaches the model or writes
 a receipt.
+
+## Diagnostics
+
+This repo now exposes the same product contract three ways:
+
+- hooks inject model-visible context
+- MCP tools expose explicit diagnostics
+- `npm run doctor` probes the adapter contract, Rust visibility, scorecards, and
+  receipt writes
+
+The MCP facade includes:
+
+- `capability_manifest`
+- `prepare_context`
+- `capability_scorecards`
+- `doctor`
+- `write_receipt`
+
+`scorecards/capability-scorecards.json` is the measurement surface for trigger
+precision, trigger recall, prompt overhead, latency, degradation rate, and host
+visibility coverage.
+
+Set `THEOREMS_HARNESS_REMOTE_READY=1` only when a remote Theorem/RustyRed adapter
+is actually available. Otherwise remote-only abilities report explicit degraded
+states such as `remote_unavailable`.

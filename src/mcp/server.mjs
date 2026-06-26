@@ -1,8 +1,11 @@
 #!/usr/bin/env node
 import { stdin, stdout } from "node:process";
 
+import { createLocalAdapter } from "../adapters/local-adapter.mjs";
 import { compileContext } from "../product/compile-context.mjs";
+import { runDoctor } from "../product/doctor.mjs";
 import { loadCapabilityManifest } from "../product/load-manifest.mjs";
+import { loadCapabilityScorecards } from "../product/scorecards.mjs";
 
 export async function handleRpcMessage(message) {
   if (message.method === "initialize") {
@@ -23,7 +26,11 @@ export async function handleRpcMessage(message) {
   }
 
   if (message.method === "tools/call") {
-    return handleToolCall(message);
+    try {
+      return await handleToolCall(message);
+    } catch (caught) {
+      return error(message.id, -32603, caught instanceof Error ? caught.message : String(caught));
+    }
   }
 
   return error(message.id, -32601, `unsupported method: ${message.method}`);
@@ -53,6 +60,37 @@ export function toolsList() {
         },
       },
     },
+    {
+      name: "capability_scorecards",
+      description: "Return capability scorecards and objective measurement targets.",
+      inputSchema: {
+        type: "object",
+        properties: {},
+      },
+    },
+    {
+      name: "doctor",
+      description: "Run product diagnostics for adapter contract, visibility, scorecards, and receipt writes.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          cwd: { type: "string" },
+        },
+      },
+    },
+    {
+      name: "write_receipt",
+      description: "Append an explicit Theorems Harness receipt event for diagnostics or host integration.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          cwd: { type: "string" },
+          path: { type: "string" },
+          event: { type: "object" },
+        },
+        required: ["event"],
+      },
+    },
   ];
 }
 
@@ -77,6 +115,25 @@ async function handleToolCall(message) {
   if (name === "prepare_context") {
     const compiled = await compileContext(args);
     return textResult(message.id, compiled);
+  }
+
+  if (name === "capability_scorecards") {
+    return textResult(message.id, await loadCapabilityScorecards());
+  }
+
+  if (name === "doctor") {
+    return textResult(message.id, await runDoctor(args));
+  }
+
+  if (name === "write_receipt") {
+    const adapter = createLocalAdapter();
+    return textResult(
+      message.id,
+      await adapter.writeReceipt(args.event, {
+        cwd: args.cwd,
+        path: args.path,
+      }),
+    );
   }
 
   return error(message.id, -32602, `unknown tool: ${name}`);

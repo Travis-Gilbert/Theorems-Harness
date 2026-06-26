@@ -5,17 +5,28 @@
   "type": "module",
   "private": false,
   "license": "MIT",
+  "bin": {
+    "theorems-harness": "./src/bin/theorems-harness.mjs",
+    "theorems-harness-product": "./src/bin/theorems-harness.mjs",
+    "theorems-harness-mcp": "./src/mcp/server.mjs"
+  },
   "engines": {
     "node": ">=20.11"
   },
   "scripts": {
     "test": "node --test",
+    "doctor": "node src/bin/doctor.mjs",
     "prepare-context": "node src/bin/prepare-context.mjs",
     "pretool-context": "node src/bin/pretool-context.mjs",
     "mcp": "node src/mcp/server.mjs"
   },
   "exports": {
     ".": "./src/product/compile-context.mjs",
-    "./manifest": "./src/product/load-manifest.mjs"
+    "./adapter": "./src/adapters/local-adapter.mjs",
+    "./contract": "./src/adapters/contract.mjs",
+    "./doctor": "./src/product/doctor.mjs",
+    "./manifest": "./src/product/load-manifest.mjs",
+    "./receipts": "./src/product/receipts.mjs",
+    "./scorecards": "./src/product/scorecards.mjs"
   }
 }

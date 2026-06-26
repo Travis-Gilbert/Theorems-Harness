@@ -13,6 +13,7 @@ test("Rust prompt activates cached Rust Engineering context", async () => {
 
   assert.equal(packet.status, "ok");
   assert.equal(packet.active_capabilities[0]?.id, "rust-engineering");
+  assert.equal(packet.receipt_events.some((item) => item.type === "CapabilityActivated"), true);
   assert.match(markdown, /Rust Engineering/);
   assert.match(markdown, /cargo test -p <crate> <test_name>/);
 });
@@ -35,7 +36,25 @@ test("code neighborhood reports no_manifest instead of silent null", async () =>
   });
 
   assert.equal(packet.degraded_capabilities.some((item) => item.reason === "no_manifest"), true);
+  assert.equal(packet.receipt_events.some((item) => item.type === "CapabilityDegraded"), true);
   assert.match(markdown, /Code Neighborhood: no_manifest/);
+});
+
+test("remote-only ambient capabilities report remote_unavailable when adapter is absent", async () => {
+  const { packet, markdown } = await compileContext({
+    prompt: "Coordinate with the other agent in the room",
+    cwd: process.cwd(),
+    changed_files: [],
+  });
+
+  assert.equal(packet.active_capabilities.some((item) => item.id === "coordination-context"), false);
+  assert.equal(
+    packet.degraded_capabilities.some(
+      (item) => item.id === "coordination-context" && item.reason === "remote_unavailable",
+    ),
+    true,
+  );
+  assert.match(markdown, /Coordination Context: remote_unavailable/);
 });
 
 test("hook response preserves the originating hook event", () => {

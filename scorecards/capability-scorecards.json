@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "metrics": {
+    "trigger_precision": "Share of activations that were useful for the current task.",
+    "trigger_recall": "Share of relevant tasks where the capability activated.",
+    "prompt_tokens_added": "Estimated model-visible token overhead.",
+    "remote_latency_ms": "End-to-end latency added by remote adapter calls.",
+    "degradation_rate": "Share of activations that returned an explicit degraded state.",
+    "visibility_tests": "Host-level tests proving the capability reaches the model or writes a receipt."
+  },
+  "default_targets": {
+    "trigger_precision": 0.85,
+    "trigger_recall": 0.9,
+    "prompt_tokens_added_max": 900,
+    "remote_latency_ms_p95_max": 750,
+    "degradation_rate_max": 0.02,
+    "visibility_tests_min": 1
+  },
+  "capabilities": {
+    "rust-engineering": {
+      "status": "measured-local",
+      "current": {
+        "visibility_tests": 4,
+        "degradation_rate": 0
+      },
+      "evidence": [
+        "tests/agent-visibility/capability-context.test.mjs",
+        "tests/agent-visibility/host-hooks.test.mjs"
+      ]
+    },
+    "code-neighborhood": {
+      "status": "degraded",
+      "current": {
+        "visibility_tests": 1,
+        "degradation_reason": "no_manifest"
+      },
+      "evidence": [
+        "tests/agent-visibility/capability-context.test.mjs",
+        "tests/diagnostics/doctor.test.mjs"
+      ]
+    },
+    "compound-engineering": {
+      "status": "unmeasured",
+      "evidence": []
+    },
+    "coordination-context": {
+      "status": "degraded",
+      "current": {
+        "visibility_tests": 1,
+        "degradation_reason": "remote_unavailable"
+      },
+      "evidence": [
+        "tests/agent-visibility/capability-context.test.mjs"
+      ]
+    },
+    "affordance-router": {
+      "status": "unmeasured",
+      "evidence": []
+    }
+  }
+}

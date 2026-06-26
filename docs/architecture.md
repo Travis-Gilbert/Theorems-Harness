@@ -27,3 +27,23 @@ substrate.
 
 An ability is not considered delivered until it reaches the model context or
 writes a receipt.
+
+## Adapter Contract
+
+The host-facing adapter verbs are:
+
+- `prepareContext`
+- `applySkill`
+- `readCodeNeighborhood`
+- `writeReceipt`
+- `selectAffordance`
+
+The local adapter is intentionally small and deterministic. It proves that the
+product layer can compile visibility packets, scorecards, and receipts without a
+live RustyRed connection. Remote adapters should implement the same verbs and
+return explicit degraded reasons instead of silent nulls.
+
+`THEOREMS_HARNESS_REMOTE_READY=1` is the product-side readiness gate for remote
+abilities without a local fallback. Leave it unset when the MCP registration,
+gateway, token, or runtime is unavailable; the capability compiler will report
+`remote_unavailable`.
