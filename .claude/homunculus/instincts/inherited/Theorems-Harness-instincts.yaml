@@ -1,0 +1,302 @@
+# Instincts generated from https://github.com/Travis-Gilbert/Theorems-Harness
+# Generated: 2026-06-26T15:21:02.134Z
+# Version: 2.0
+# NOTE: This file supplements (does not replace) any existing curated instincts.
+# High-confidence manually curated instincts should be preserved alongside these.
+
+---
+id: Theorems-Harness-commit-conventional
+trigger: "when writing a commit message"
+confidence: 0.85
+domain: git
+source: repo-analysis
+source_repo: https://github.com/Travis-Gilbert/Theorems-Harness
+---
+
+# Theorems Harness Commit Conventional
+
+## Action
+
+Use conventional commit format with prefixes: feat
+
+## Evidence
+
+- 1 commits analyzed
+- Detected conventional commit pattern
+- Examples: feat(product): add capability manifest scaffold
+
+---
+id: Theorems-Harness-commit-length
+trigger: "when writing a commit message"
+confidence: 0.6
+domain: git
+source: repo-analysis
+source_repo: https://github.com/Travis-Gilbert/Theorems-Harness
+---
+
+# Theorems Harness Commit Length
+
+## Action
+
+Keep commit messages concise (~47 characters)
+
+## Evidence
+
+- Average commit message length: 47 chars
+- Based on 1 commits
+
+---
+id: Theorems-Harness-naming-files
+trigger: "when creating a new file"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/Travis-Gilbert/Theorems-Harness
+---
+
+# Theorems Harness Naming Files
+
+## Action
+
+Use kebab-case naming convention
+
+## Evidence
+
+- Analyzed file naming patterns in repository
+- Dominant pattern: kebab-case
+
+---
+id: Theorems-Harness-export-style
+trigger: "when exporting from a module"
+confidence: 0.7
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/Travis-Gilbert/Theorems-Harness
+---
+
+# Theorems Harness Export Style
+
+## Action
+
+Prefer named exports
+
+## Evidence
+
+- Export pattern analysis
+- Dominant style: named
+
+---
+id: Theorems-Harness-test-separate
+trigger: "when writing tests"
+confidence: 0.8
+domain: testing
+source: repo-analysis
+source_repo: https://github.com/Travis-Gilbert/Theorems-Harness
+---
+
+# Theorems Harness Test Separate
+
+## Action
+
+Place tests in the tests/ or __tests__/ directory, mirroring src structure
+
+## Evidence
+
+- Separate test directory pattern detected
+- Tests live in dedicated test folders
+
+---
+id: theorems-harness-instinct-file-naming
+trigger: "When creating a new file"
+confidence: 0.9
+domain: code-style
+source: repo-analysis
+source_repo: Travis-Gilbert/Theorems-Harness
+---
+
+# Theorems Harness Instinct File Naming
+
+## Action
+
+Name the file using kebab-case
+
+## Evidence
+
+- Pattern in namingConventions.files
+- Observed in src/product/capability-manifest.ts
+
+---
+id: theorems-harness-instinct-function-naming
+trigger: "When defining a new function"
+confidence: 0.9
+domain: code-style
+source: repo-analysis
+source_repo: Travis-Gilbert/Theorems-Harness
+---
+
+# Theorems Harness Instinct Function Naming
+
+## Action
+
+Use camelCase for the function name
+
+## Evidence
+
+- Pattern in namingConventions.functions
+- Seen in src/product/capabilityManifest.ts
+
+---
+id: theorems-harness-instinct-class-naming
+trigger: "When defining a new class"
+confidence: 0.9
+domain: code-style
+source: repo-analysis
+source_repo: Travis-Gilbert/Theorems-Harness
+---
+
+# Theorems Harness Instinct Class Naming
+
+## Action
+
+Use PascalCase for the class name
+
+## Evidence
+
+- Pattern in namingConventions.classes
+
+---
+id: theorems-harness-instinct-constant-naming
+trigger: "When defining a constant"
+confidence: 0.9
+domain: code-style
+source: repo-analysis
+source_repo: Travis-Gilbert/Theorems-Harness
+---
+
+# Theorems Harness Instinct Constant Naming
+
+## Action
+
+Use SCREAMING_SNAKE_CASE for the constant name
+
+## Evidence
+
+- Pattern in namingConventions.constants
+
+---
+id: theorems-harness-instinct-import-style
+trigger: "When importing modules"
+confidence: 0.7
+domain: code-style
+source: repo-analysis
+source_repo: Travis-Gilbert/Theorems-Harness
+---
+
+# Theorems Harness Instinct Import Style
+
+## Action
+
+Use a mixed import style (both default and named imports as appropriate)
+
+## Evidence
+
+- Pattern in importStyle: mixed
+
+---
+id: theorems-harness-instinct-export-style
+trigger: "When exporting modules or functions"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: Travis-Gilbert/Theorems-Harness
+---
+
+# Theorems Harness Instinct Export Style
+
+## Action
+
+Use named exports
+
+## Evidence
+
+- Pattern in exportStyle: named
+
+---
+id: theorems-harness-instinct-git-commit-format
+trigger: "When committing code"
+confidence: 0.9
+domain: git
+source: repo-analysis
+source_repo: Travis-Gilbert/Theorems-Harness
+---
+
+# Theorems Harness Instinct Git Commit Format
+
+## Action
+
+Format the commit message using the conventional commits style with a 'feat' prefix for features
+
+## Evidence
+
+- Seen in commit: feat(product): add capability manifest scaffold
+- Pattern in commits.prefixes
+
+---
+id: theorems-harness-instinct-commit-length
+trigger: "When writing a commit message"
+confidence: 0.7
+domain: git
+source: repo-analysis
+source_repo: Travis-Gilbert/Theorems-Harness
+---
+
+# Theorems Harness Instinct Commit Length
+
+## Action
+
+Keep the commit message concise, around 47 characters on average
+
+## Evidence
+
+- Pattern in commits.averageLength
+
+---
+id: theorems-harness-instinct-test-location
+trigger: "When adding or updating tests"
+confidence: 0.9
+domain: testing
+source: repo-analysis
+source_repo: Travis-Gilbert/Theorems-Harness
+---
+
+# Theorems Harness Instinct Test Location
+
+## Action
+
+Place test files in the separate 'tests' folder
+
+## Evidence
+
+- Pattern in architecture.folderStructure.testLocation
+- Presence of 'tests' folder
+
+---
+id: theorems-harness-instinct-test-structure
+trigger: "When organizing code and tests"
+confidence: 0.8
+domain: testing
+source: repo-analysis
+source_repo: Travis-Gilbert/Theorems-Harness
+---
+
+# Theorems Harness Instinct Test Structure
+
+## Action
+
+Keep source code and tests in separate directories
+
+## Evidence
+
+- Pattern in architecture.folderStructure.srcLayout
+- Presence of both 'src' and 'tests' folders
+
