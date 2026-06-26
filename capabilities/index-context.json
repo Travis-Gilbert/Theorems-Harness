@@ -24,17 +24,18 @@
     "tool_input_regex": "index_context|index_spine|graphql_query|recall|memory|ContextView|QueryReceipt"
   },
   "context": {
-    "directive": "Before broad recall or manual fusion, call index_context to assemble a compact GraphQL-backed context packet. Let the product layer fuse candidates and use cache metadata; hydrate only the records the packet justifies.",
+    "directive": "Before broad recall or manual fusion, call index_context to assemble a compact GraphQL-backed context packet. Let the product layer use the learned reranker and cache metadata; hydrate only the records the packet justifies.",
     "workflow": [
       "Extract intent, entities, project hints, file paths, tool names, and exact ids.",
       "Call index_context with a bounded limit and default cache policy.",
       "Use returned top_context, rank_signals, and provenance as the working set.",
+      "Prefer fusion.mode learned_listwise_reranker or learned_cross_encoder_reranker; treat weighted_rrf as a labeled fallback.",
       "Use index_spine only for narrower inspection or degraded-state diagnosis.",
       "Escalate to full hydration only for the top records that are actually needed."
     ],
     "validation_defaults": [
       "MCP tools/list includes index_context",
-      "index_context({\"query\":\"...\"}) returns top_context and fusion metadata",
+      "index_context({\"query\":\"...\"}) returns top_context and learned reranker fusion metadata when reranker env is configured",
       "A repeated identical index_context call reports cache.status=hit"
     ],
     "degraded_reasons": ["remote_unavailable", "contract_missing", "empty_query"]

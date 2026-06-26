@@ -142,6 +142,32 @@ export function toolsList() {
           remote_url: { type: "string" },
           token: { type: "string" },
           timeout_ms: { type: "number" },
+          listwise_reranker_url: {
+            type: "string",
+            description: "Learned listwise reranker base URL or /rerank endpoint. Defaults to THEOREMS_HARNESS_LISTWISE_RERANKER_URL or THEOREM_LISTWISE_RERANKER_URL.",
+          },
+          listwise_reranker_model: {
+            type: "string",
+            description: "Listwise reranker model id. Defaults to jinaai/jina-reranker-v3.",
+          },
+          cross_encoder_url: {
+            type: "string",
+            description: "Learned cross-encoder base URL or /score endpoint. Defaults to THEOREMS_HARNESS_RERANKER_URL or THEOREM_RERANKER_URL.",
+          },
+          cross_encoder_model: {
+            type: "string",
+            description: "Cross-encoder reranker model id. Defaults to Alibaba-NLP/gte-reranker-modernbert-base.",
+          },
+          reranker_url: {
+            type: "string",
+            description: "Generic learned reranker URL. Use reranker_kind=listwise when the endpoint is listwise; otherwise it is treated as cross-encoder.",
+          },
+          reranker_kind: {
+            type: "string",
+            enum: ["listwise", "cross_encoder"],
+          },
+          reranker_model: { type: "string" },
+          reranker_token: { type: "string" },
         },
       },
     },

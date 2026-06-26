@@ -72,10 +72,14 @@ The tenant probe must expose per-tenant `quotas`, `concurrency_limits`,
 
 ## Index Context
 
-`index_context` is healthy when it returns `status: "ok"`, a non-empty
-`top_context` array for known indexed queries, `fusion.mode: "weighted_rrf"` or
-a named substrate reranker, and a `cache` object with `status` of `miss`,
-`stored`, `hit`, or `bypass`.
+`index_context` is healthy when it returns `status: "ok"` and a non-empty
+`top_context` array for known indexed queries. With reranker configuration,
+`fusion.mode` should be `learned_listwise_reranker` for listwise services or
+`learned_cross_encoder_reranker` when only a cross-encoder is configured.
+`weighted_rrf` is acceptable only as an explicit fallback with
+`fusion.reranker.status` explaining whether the learned reranker was not
+configured or failed. The payload must also include a `cache` object with
+`status` of `miss`, `stored`, `hit`, or `bypass`.
 
 The product fallback cache is process-local. A deployed MCP service can swap the
 same stable cache key into Valkey cache-aside for recomputable context packets.

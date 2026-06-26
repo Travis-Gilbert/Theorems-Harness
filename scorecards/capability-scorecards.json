@@ -34,7 +34,7 @@
         "visibility_tests": 3,
         "degradation_rate": 0,
         "cache_backend": "process-memory",
-        "fusion": "weighted_rrf"
+        "fusion": "learned_reranker_with_weighted_rrf_fallback"
       },
       "evidence": [
         "tests/agent-visibility/capability-context.test.mjs",

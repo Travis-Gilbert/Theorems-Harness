@@ -47,13 +47,15 @@ Product MCP tools can also be thin proxies over native Theorem/RustyRed MCP
 tools when the affordance is already substrate-owned. `index_context` is the
 query-start path: it calls native GraphQL memory plus index-spine fields, fuses
 candidate memories, context views, query receipts, and map artifacts outside the
-model context, and exposes cache metadata. `index_spine` is the lower-level
+model context with learned rerankers before falling back to weighted RRF, and
+exposes cache metadata. `index_spine` is the lower-level
 inspection path: the product tool keeps the host-facing name stable, forwards to
 native `rustyred_thg_index_spine`, and reports `remote_unavailable` or
 `contract_missing` when the remote MCP endpoint cannot satisfy the contract.
-The current product fallback uses weighted RRF and process-memory TTL caching;
-the same contract can be backed by a substrate reranker and Valkey cache-aside
-store when those services are configured.
+The ranking order is listwise learned reranker, cross-encoder learned reranker,
+then weighted RRF fallback. Process-memory TTL caching uses a stable key that
+includes the reranker identity; the same key can back a Valkey cache-aside store
+when the product MCP runs as a long-lived service.
 
 `THEOREMS_HARNESS_REMOTE_READY=1` is the product-side readiness gate for remote
 abilities without a local fallback. Leave it unset when the MCP registration,

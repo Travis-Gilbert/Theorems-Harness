@@ -99,9 +99,12 @@ queues, feature-scoped dependency degradation, and per-tenant guardrails.
 
 The `index_context` MCP tool is the normal query-start path for index-aware
 context assembly. It calls native GraphQL memory and index-spine fields, fuses
-memory, query receipts, context views, and map artifacts with weighted RRF, and
-caches the compact packet by a stable key. A substrate reranker or Valkey-backed
-cache can replace those internals without changing the product tool shape.
+memory, query receipts, context views, and map artifacts with the learned
+listwise reranker when configured, then the learned cross-encoder, and only
+falls back to weighted RRF when learned ranking is unavailable. The compact
+packet is cached by a stable key that includes the reranker identity, so a
+Valkey-backed cache can replace the local cache without changing the product
+tool shape.
 
 The `index_spine` MCP tool is the lower-level inspection path. It proxies the
 native Theorem/RustyRed `rustyred_thg_index_spine` tool over the configured

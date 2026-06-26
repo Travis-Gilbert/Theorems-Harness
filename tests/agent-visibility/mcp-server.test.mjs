@@ -136,8 +136,19 @@ test("MCP facade assembles and caches GraphQL index context", async () => {
   const requests = [];
   const server = createServer(async (request, response) => {
     const body = await readBody(request);
-    const rpc = JSON.parse(body);
-    requests.push({ url: request.url, body: rpc });
+    const parsed = JSON.parse(body);
+    requests.push({ url: request.url, body: parsed });
+    if (request.url === "/rerank") {
+      assert.equal(parsed.model, "jinaai/jina-reranker-v3");
+      assert.equal(parsed.query, "adaptive index recall context");
+      assert.equal(parsed.texts.length, 3);
+      writeJson(response, {
+        scores: [0.2, 0.97, 0.4],
+      });
+      return;
+    }
+
+    const rpc = parsed;
     assert.equal(rpc.params.name, "graphql_query");
     assert.match(rpc.params.arguments.query, /indexSpineOverview/);
     assert.match(rpc.params.arguments.query, /memory/);
@@ -211,6 +222,7 @@ test("MCP facade assembles and caches GraphQL index context", async () => {
   const { port } = server.address();
   const args = {
     remote_url: `http://127.0.0.1:${port}`,
+    listwise_reranker_url: `http://127.0.0.1:${port}`,
     query: "adaptive index recall context",
     limit: 5,
     cache_ttl_ms: 10_000,
@@ -240,11 +252,13 @@ test("MCP facade assembles and caches GraphQL index context", async () => {
     const secondPayload = JSON.parse(second.result.content[0].text);
     assert.equal(firstPayload.status, "ok");
     assert.equal(firstPayload.mode, "graphql-index-context");
-    assert.equal(firstPayload.fusion.mode, "weighted_rrf");
-    assert.equal(firstPayload.top_context[0].id, "mem-1");
+    assert.equal(firstPayload.fusion.mode, "learned_listwise_reranker");
+    assert.equal(firstPayload.fusion.reranker.status, "used");
+    assert.equal(firstPayload.top_context[0].id, "receipt-1");
     assert.equal(firstPayload.cache.status, "miss");
     assert.equal(secondPayload.cache.status, "hit");
-    assert.equal(requests.length, 1);
+    assert.equal(requests.filter((request) => request.url === "/mcp").length, 1);
+    assert.equal(requests.filter((request) => request.url === "/rerank").length, 1);
   } finally {
     server.close();
     await once(server, "close");
