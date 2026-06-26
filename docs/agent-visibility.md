@@ -23,6 +23,8 @@ Do not return silent `null` for unavailable abilities. Use explicit reasons:
 - `empty_pack`
 - `missing_token`
 - `selector_empty`
+- `contract_missing`
+- `empty_query`
 
 This keeps product failures inspectable from Claude, Codex, and CI.
 

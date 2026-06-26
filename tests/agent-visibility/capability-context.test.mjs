@@ -28,6 +28,19 @@ test("Rust changed file activates Rust Engineering without prompt keyword", asyn
   assert.equal(packet.active_capabilities.some((item) => item.id === "rust-engineering"), true);
 });
 
+test("index prompt activates Index Context skill guidance", async () => {
+  const { packet, markdown } = await compileContext({
+    prompt: "Find the relevant memory and prior decision using the adaptive index",
+    cwd: process.cwd(),
+    changed_files: [],
+  });
+
+  assert.equal(packet.active_capabilities.some((item) => item.id === "index-context"), true);
+  assert.equal(packet.receipt_events.some((item) => item.type === "CapabilityActivated"), true);
+  assert.match(markdown, /Index Context/);
+  assert.match(markdown, /index_context/);
+});
+
 test("code neighborhood reports no_manifest instead of silent null", async () => {
   const { packet, markdown } = await compileContext({
     prompt: "What is the impact of changing this code path?",

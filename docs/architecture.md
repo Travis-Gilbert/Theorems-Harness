@@ -43,7 +43,37 @@ product layer can compile visibility packets, scorecards, and receipts without a
 live RustyRed connection. Remote adapters should implement the same verbs and
 return explicit degraded reasons instead of silent nulls.
 
+Product MCP tools can also be thin proxies over native Theorem/RustyRed MCP
+tools when the affordance is already substrate-owned. `index_context` is the
+query-start path: it calls native GraphQL memory plus index-spine fields, fuses
+candidate memories, context views, query receipts, and map artifacts outside the
+model context, and exposes cache metadata. `index_spine` is the lower-level
+inspection path: the product tool keeps the host-facing name stable, forwards to
+native `rustyred_thg_index_spine`, and reports `remote_unavailable` or
+`contract_missing` when the remote MCP endpoint cannot satisfy the contract.
+The current product fallback uses weighted RRF and process-memory TTL caching;
+the same contract can be backed by a substrate reranker and Valkey cache-aside
+store when those services are configured.
+
 `THEOREMS_HARNESS_REMOTE_READY=1` is the product-side readiness gate for remote
 abilities without a local fallback. Leave it unset when the MCP registration,
 gateway, token, or runtime is unavailable; the capability compiler will report
 `remote_unavailable`.
+
+## Remote Service Reliability Contract
+
+The remote doctor is the service-side acceptance contract. It deliberately
+checks for product failure modes rather than implementation details:
+
+- Heavy work goes through durable queues with leases, heartbeats, retries, and a
+  reaper. Public requests return `202 job_id` or a structured timeout.
+- Dependency failures are feature scoped. A missing model token, cold recall
+  index, unavailable Valkey, or warming RustyRed store must not take down the
+  whole service.
+- Multiuser guardrails are explicit per tenant: quotas, concurrency limits,
+  queue isolation, rate limits, storage namespaces, and noisy-neighbor
+  protection.
+
+The conventional probe paths are `/health`, `/ready`, `/diagnostics/queue`,
+`/diagnostics/dependencies`, and `/diagnostics/tenants`. A remote service can
+override paths by serving `/.well-known/theorems-harness/doctor.json`.

@@ -16,6 +16,7 @@
   "scripts": {
     "test": "node --test",
     "doctor": "node src/bin/doctor.mjs",
+    "remote-doctor": "node src/bin/remote-doctor.mjs",
     "prepare-context": "node src/bin/prepare-context.mjs",
     "pretool-context": "node src/bin/pretool-context.mjs",
     "mcp": "node src/mcp/server.mjs"
@@ -25,7 +26,10 @@
     "./adapter": "./src/adapters/local-adapter.mjs",
     "./contract": "./src/adapters/contract.mjs",
     "./doctor": "./src/product/doctor.mjs",
+    "./index-context": "./src/product/index-context.mjs",
+    "./index-spine": "./src/product/index-spine.mjs",
     "./manifest": "./src/product/load-manifest.mjs",
+    "./remote-doctor": "./src/product/remote-doctor.mjs",
     "./receipts": "./src/product/receipts.mjs",
     "./scorecards": "./src/product/scorecards.mjs"
   }

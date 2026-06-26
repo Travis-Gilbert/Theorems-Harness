@@ -17,14 +17,18 @@ export function createLocalAdapter(options = {}) {
     },
     async applySkill(input = {}) {
       const skillId = String(input.skill_id ?? input.skillId ?? "");
-      if (skillId !== "rust-engineering") {
+      const manifest = await loadCapabilityManifest(root);
+      const capability = manifest.capabilities.find(
+        (item) => item.id === skillId || item.local_fallback === `skills/${skillId}/SKILL.md`,
+      );
+      if (!capability?.local_fallback) {
         return degraded("empty_pack", { skill_id: skillId });
       }
       return {
         ok: true,
         skill_id: skillId,
         mode: "cached-skill",
-        path: resolve(root, "skills/rust-engineering/SKILL.md"),
+        path: resolve(root, capability.local_fallback),
       };
     },
     async readCodeNeighborhood(input = {}) {

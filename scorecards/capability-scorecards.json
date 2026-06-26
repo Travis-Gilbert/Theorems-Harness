@@ -28,6 +28,20 @@
         "tests/agent-visibility/host-hooks.test.mjs"
       ]
     },
+    "index-context": {
+      "status": "measured-local",
+      "current": {
+        "visibility_tests": 3,
+        "degradation_rate": 0,
+        "cache_backend": "process-memory",
+        "fusion": "weighted_rrf"
+      },
+      "evidence": [
+        "tests/agent-visibility/capability-context.test.mjs",
+        "tests/agent-visibility/mcp-server.test.mjs",
+        "tests/diagnostics/adapter-contract.test.mjs"
+      ]
+    },
     "code-neighborhood": {
       "status": "degraded",
       "current": {
@@ -56,6 +70,27 @@
     "affordance-router": {
       "status": "unmeasured",
       "evidence": []
+    },
+    "adaptive-index-spine": {
+      "status": "measured-local",
+      "current": {
+        "visibility_tests": 2,
+        "degradation_reason": "remote_unavailable"
+      },
+      "evidence": [
+        "tests/agent-visibility/mcp-server.test.mjs"
+      ]
+    },
+    "service-reliability-doctor": {
+      "status": "measured-local",
+      "current": {
+        "visibility_tests": 2,
+        "degradation_reason": "remote_unavailable"
+      },
+      "evidence": [
+        "tests/agent-visibility/mcp-server.test.mjs",
+        "tests/diagnostics/remote-doctor.test.mjs"
+      ]
     }
   }
 }

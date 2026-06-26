@@ -9,10 +9,14 @@ export const ADAPTER_VERBS = Object.freeze([
 export const DEGRADED_REASONS = Object.freeze([
   "no_manifest",
   "remote_unavailable",
+  "missing_probe",
   "empty_pack",
   "missing_token",
   "selector_empty",
   "contract_missing",
+  "dependency_degraded",
+  "tenant_guard_missing",
+  "empty_query",
 ]);
 
 export function adapterContract() {

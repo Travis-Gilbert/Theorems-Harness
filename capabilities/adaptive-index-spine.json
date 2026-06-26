@@ -1,0 +1,33 @@
+{
+  "id": "adaptive-index-spine",
+  "title": "Adaptive Index Spine",
+  "delivery": "explicit",
+  "priority": 65,
+  "must_be_visible_to_model": false,
+  "requires_remote": true,
+  "backing": {
+    "product_verbs": ["index_spine"],
+    "theorem_verbs": [
+      "rustyred_thg_index_spine",
+      "graphql_query.indexSpineOverview",
+      "graphql_query.indexSpineRecords",
+      "graphql_query.trainingExportValidation"
+    ],
+    "native_mcp_tool": "rustyred_thg_index_spine"
+  },
+  "triggers": {
+    "prompt_regex": "\\b(index spine|adaptive index|index manifest|query receipt|advisor proposal|context view|map artifact|training export|export validation|redaction validation|index reliability|stale index|degraded index)\\b"
+  },
+  "context": {
+    "directive": "Use the index spine before guessing why recall or context selection is unreliable. Inspect manifests, receipts, context views, maps, and training export validation, and report remote_unavailable explicitly when the substrate MCP cannot answer.",
+    "validation_defaults": [
+      "MCP tools/list includes index_spine",
+      "index_spine({\"surface\":\"overview\"}) returns counts plus reliability signals",
+      "index_spine({\"surface\":\"export_validation\"}) reports blocked training exports before any training handoff"
+    ],
+    "degraded_reasons": ["remote_unavailable", "contract_missing"]
+  },
+  "receipts": {
+    "events": ["IndexSpineRead", "IndexSpineDegraded"]
+  }
+}

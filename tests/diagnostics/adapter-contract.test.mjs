@@ -20,3 +20,13 @@ test("local adapter reports missing code neighborhood state explicitly", async (
   assert.equal(result.ok, false);
   assert.equal(result.reason, "no_manifest");
 });
+
+test("local adapter resolves cached index skill from manifest", async () => {
+  const adapter = createLocalAdapter();
+  const result = await adapter.applySkill({ skill_id: "index" });
+
+  assert.equal(result.ok, true);
+  assert.equal(result.skill_id, "index");
+  assert.equal(result.mode, "cached-skill");
+  assert.match(result.path, /skills\/index\/SKILL\.md$/);
+});

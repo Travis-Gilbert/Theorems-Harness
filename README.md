@@ -41,7 +41,10 @@ The first shipped capability is a local, deterministic visibility contract:
 ```bash
 npm test
 npm run doctor
+npm run remote-doctor
 node src/bin/theorems-harness.mjs doctor --json
+THEOREMS_HARNESS_REMOTE_URL=https://example.internal \
+  node src/bin/theorems-harness.mjs remote-doctor --json
 node src/bin/prepare-context.mjs <<'JSON'
 {"prompt":"Edit Rust code in the harness crate","cwd":"/tmp/demo","changed_files":["src/lib.rs"]}
 JSON
@@ -77,6 +80,9 @@ The MCP facade includes:
 - `prepare_context`
 - `capability_scorecards`
 - `doctor`
+- `remote_doctor`
+- `index_context`
+- `index_spine`
 - `write_receipt`
 
 `scorecards/capability-scorecards.json` is the measurement surface for trigger
@@ -86,3 +92,19 @@ visibility coverage.
 Set `THEOREMS_HARNESS_REMOTE_READY=1` only when a remote Theorem/RustyRed adapter
 is actually available. Otherwise remote-only abilities report explicit degraded
 states such as `remote_unavailable`.
+
+Set `THEOREMS_HARNESS_REMOTE_URL` to run the remote doctor. The remote doctor
+requires liveness/readiness probes plus structured diagnostics for durable async
+queues, feature-scoped dependency degradation, and per-tenant guardrails.
+
+The `index_context` MCP tool is the normal query-start path for index-aware
+context assembly. It calls native GraphQL memory and index-spine fields, fuses
+memory, query receipts, context views, and map artifacts with weighted RRF, and
+caches the compact packet by a stable key. A substrate reranker or Valkey-backed
+cache can replace those internals without changing the product tool shape.
+
+The `index_spine` MCP tool is the lower-level inspection path. It proxies the
+native Theorem/RustyRed `rustyred_thg_index_spine` tool over the configured
+remote MCP endpoint and returns explicit `remote_unavailable` or
+`contract_missing` states instead of silently pretending the adaptive index
+cannot answer.

@@ -4,7 +4,10 @@ import { stdin, stdout } from "node:process";
 import { createLocalAdapter } from "../adapters/local-adapter.mjs";
 import { compileContext } from "../product/compile-context.mjs";
 import { runDoctor } from "../product/doctor.mjs";
+import { queryIndexContext } from "../product/index-context.mjs";
+import { queryIndexSpine } from "../product/index-spine.mjs";
 import { loadCapabilityManifest } from "../product/load-manifest.mjs";
+import { runRemoteDoctor } from "../product/remote-doctor.mjs";
 import { loadCapabilityScorecards } from "../product/scorecards.mjs";
 
 export async function handleRpcMessage(message) {
@@ -79,6 +82,70 @@ export function toolsList() {
       },
     },
     {
+      name: "remote_doctor",
+      description: "Run remote service reliability diagnostics for liveness, readiness, async queues, dependency isolation, and tenant guardrails.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          remote_url: { type: "string" },
+          token: { type: "string" },
+          timeout_ms: { type: "number" },
+        },
+      },
+    },
+    {
+      name: "index_spine",
+      description: "Proxy the Adaptive Index Spine read surface from Theorem/RustyRed MCP with explicit degraded states when the remote is unavailable.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          surface: {
+            type: "string",
+            enum: [
+              "overview",
+              "index_manifests",
+              "query_receipts",
+              "advisor_proposals",
+              "context_views",
+              "maps",
+              "training_runs",
+              "training_exports",
+              "export_validation",
+            ],
+          },
+          limit: { type: "number" },
+          id_prefix: { type: "string" },
+          properties: { type: "object" },
+          include_records: { type: "boolean" },
+          remote_url: { type: "string" },
+          token: { type: "string" },
+          timeout_ms: { type: "number" },
+        },
+      },
+    },
+    {
+      name: "index_context",
+      description: "Assemble a compact query context packet by querying GraphQL memory and index-spine surfaces, fusing candidates, and caching the result.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          query: { type: "string" },
+          prompt: { type: "string" },
+          task: { type: "string" },
+          limit: { type: "number" },
+          content_preview_chars: { type: "number" },
+          cache_policy: {
+            type: "string",
+            enum: ["read_write", "read_only", "write_only", "bypass"],
+          },
+          cache_ttl_ms: { type: "number" },
+          remote_url: { type: "string" },
+          token: { type: "string" },
+          timeout_ms: { type: "number" },
+        },
+      },
+    },
+    {
       name: "write_receipt",
       description: "Append an explicit Theorems Harness receipt event for diagnostics or host integration.",
       inputSchema: {
@@ -123,6 +190,18 @@ async function handleToolCall(message) {
 
   if (name === "doctor") {
     return textResult(message.id, await runDoctor(args));
+  }
+
+  if (name === "remote_doctor") {
+    return textResult(message.id, await runRemoteDoctor(args));
+  }
+
+  if (name === "index_spine") {
+    return textResult(message.id, await queryIndexSpine(args));
+  }
+
+  if (name === "index_context") {
+    return textResult(message.id, await queryIndexContext(args));
   }
 
   if (name === "write_receipt") {
