@@ -1,0 +1,32 @@
+{
+  "description": "Theorems Harness product hooks for Claude Code.",
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "shell": "bash",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/src/bin/prepare-context.mjs\"",
+            "timeout": 10,
+            "statusMessage": "Preparing Theorems Harness capability packet"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Edit|Write|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "shell": "bash",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/src/bin/pretool-context.mjs\"",
+            "timeout": 10,
+            "statusMessage": "Checking Theorems Harness capability triggers"
+          }
+        ]
+      }
+    ]
+  }
+}

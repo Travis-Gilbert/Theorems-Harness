@@ -1,0 +1,21 @@
+{
+  "id": "coordination-context",
+  "title": "Coordination Context",
+  "delivery": "ambient",
+  "priority": 70,
+  "must_be_visible_to_model": false,
+  "requires_remote": true,
+  "backing": {
+    "theorem_verbs": ["coordination_context", "presence", "read_intents_for_room", "mentions"]
+  },
+  "triggers": {
+    "prompt_regex": "\\b(claude|codex|handoff|room|coordinate|mention|peer|overlap|other agent)\\b",
+    "hook_events": ["SessionStart", "UserPromptSubmit"]
+  },
+  "context": {
+    "directive": "Read active room state when live peer work or handoff context may matter. Filter stale intents and report inactive peers as inactive."
+  },
+  "receipts": {
+    "events": ["PresenceHeartbeat", "CoordinationRead"]
+  }
+}

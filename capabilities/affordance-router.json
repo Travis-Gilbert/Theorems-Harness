@@ -1,0 +1,20 @@
+{
+  "id": "affordance-router",
+  "title": "Affordance Router",
+  "delivery": "explicit",
+  "priority": 30,
+  "must_be_visible_to_model": false,
+  "backing": {
+    "theorem_verbs": ["tool_search", "invoke"],
+    "runtime_modules": ["rustyred-thg-affordances", "rustyred-thg-connectors"]
+  },
+  "triggers": {
+    "prompt_regex": "\\b(connector|external tool|invoke|affordance|search tools|which tool)\\b"
+  },
+  "context": {
+    "directive": "Keep connector details behind tool_search/invoke instead of advertising every spoke as a flat model tool."
+  },
+  "receipts": {
+    "events": ["AffordanceSelected", "AffordanceInvoked"]
+  }
+}

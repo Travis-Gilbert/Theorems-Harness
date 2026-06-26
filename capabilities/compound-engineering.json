@@ -1,0 +1,21 @@
+{
+  "id": "compound-engineering",
+  "title": "Compound Engineering",
+  "delivery": "background",
+  "priority": 40,
+  "must_be_visible_to_model": false,
+  "backing": {
+    "theorem_verbs": ["skill_apply", "record_use_receipt", "encode"],
+    "runtime_modules": ["compound_engineering", "skill_pack"]
+  },
+  "triggers": {
+    "hook_events": ["Stop", "PostToolUse"],
+    "prompt_regex": "\\b(lesson|postmortem|reusable pattern|validator|skill pack|compound|learn from this)\\b"
+  },
+  "context": {
+    "directive": "Run in the background: convert validated outcomes into receipts and learning signals without bloating the model context."
+  },
+  "receipts": {
+    "required": ["UseReceipt", "OutcomeSignal"]
+  }
+}

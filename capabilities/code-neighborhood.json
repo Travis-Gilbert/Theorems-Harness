@@ -1,0 +1,25 @@
+{
+  "id": "code-neighborhood",
+  "title": "Code Neighborhood",
+  "delivery": "ambient",
+  "priority": 80,
+  "must_be_visible_to_model": false,
+  "requires_remote": true,
+  "backing": {
+    "theorem_verbs": ["context_pack", "session_reingest", "coordination_context"],
+    "manifest_path": ".harness/code-kg-manifest.json"
+  },
+  "triggers": {
+    "prompt_regex": "\\b(code context|impact|drift|process flow|what touches|why does this code|review context|change blast radius|compile context)\\b",
+    "file_extensions": [".rs", ".ts", ".tsx", ".js", ".mjs", ".py", ".swift"],
+    "tool_name_regex": "apply_patch|exec_command|Edit|Write|Bash"
+  },
+  "context": {
+    "directive": "Fetch the smallest useful code neighborhood and report degraded reasons explicitly when the code KG cannot answer.",
+    "degraded_reasons": ["no_manifest", "remote_unavailable", "empty_pack"]
+  },
+  "receipts": {
+    "offered_nodes": ".harness/offered-nodes.jsonl",
+    "outcome_verb": "record_use_receipt"
+  }
+}

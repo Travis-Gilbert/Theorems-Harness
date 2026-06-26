@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "product": "theorems-harness",
+  "description": "Agent-visible capability contract for Theorems Harness product delivery.",
+  "default_tenant_env": [
+    "THEOREM_HARNESS_TENANT",
+    "THEOREMS_HARNESS_TENANT",
+    "THEOREM_TENANT_SLUG",
+    "RUSTYRED_THG_TENANT"
+  ],
+  "capabilities": [
+    "./rust-engineering.json",
+    "./code-neighborhood.json",
+    "./compound-engineering.json",
+    "./coordination-context.json",
+    "./affordance-router.json"
+  ]
+}

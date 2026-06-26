@@ -1,0 +1,21 @@
+{
+  "name": "theorems-harness-product",
+  "version": "0.1.0",
+  "description": "Product delivery surface for Theorems Harness capabilities, hooks, and MCP facade.",
+  "type": "module",
+  "private": false,
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.11"
+  },
+  "scripts": {
+    "test": "node --test",
+    "prepare-context": "node src/bin/prepare-context.mjs",
+    "pretool-context": "node src/bin/pretool-context.mjs",
+    "mcp": "node src/mcp/server.mjs"
+  },
+  "exports": {
+    ".": "./src/product/compile-context.mjs",
+    "./manifest": "./src/product/load-manifest.mjs"
+  }
+}
