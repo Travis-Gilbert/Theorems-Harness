@@ -2,6 +2,7 @@ import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 
 import { loadCapabilityManifest, productRoot } from "./load-manifest.mjs";
+import { buildReceiptEvents } from "./receipts.mjs";
 
 export async function compileContext(input = {}, options = {}) {
   const root = options.root ?? productRoot();
@@ -21,6 +22,7 @@ export async function compileContext(input = {}, options = {}) {
         id: capability.id,
         title: capability.title,
         reason: degradedReason,
+        must_be_visible_to_model: Boolean(capability.must_be_visible_to_model),
       });
       continue;
     }
@@ -41,6 +43,7 @@ export async function compileContext(input = {}, options = {}) {
     degraded_capabilities: degradedCapabilities,
     receipts_required: activeCapabilities.flatMap((capability) => capability.receipts_required),
   };
+  packet.receipt_events = buildReceiptEvents(packet, event);
 
   return {
     packet,
@@ -90,6 +93,7 @@ function normalizeInput(input) {
     toolName: String(input.tool_name ?? input.toolName ?? input.tool?.name ?? input.tool ?? ""),
     toolInput: JSON.stringify(input.tool_input ?? input.toolInput ?? input.arguments ?? {}),
     changedFiles,
+    remoteReady: Boolean(input.remote_ready ?? input.remoteReady ?? remoteReadyFromEnv()),
   };
 }
 
@@ -110,6 +114,9 @@ function degradedReasonFor(capability, event) {
   const manifestPath = capability.backing?.manifest_path;
   if (manifestPath && !existsSync(resolve(event.cwd, manifestPath))) {
     return "no_manifest";
+  }
+  if (!event.remoteReady && !capability.local_fallback) {
+    return "remote_unavailable";
   }
   return "";
 }
@@ -192,5 +199,11 @@ function baseName(path) {
 function isMustVisible(manifest, capabilityId) {
   return manifest.capabilities.some(
     (capability) => capability.id === capabilityId && capability.must_be_visible_to_model,
+  );
+}
+
+function remoteReadyFromEnv() {
+  return ["1", "true", "yes"].includes(
+    String(process.env.THEOREMS_HARNESS_REMOTE_READY ?? "").toLowerCase(),
   );
 }

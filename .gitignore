@@ -3,5 +3,6 @@ coverage/
 dist/
 .DS_Store
 .theorem/
+.theorems-harness/
 .harness/tmp/
 npm-debug.log*

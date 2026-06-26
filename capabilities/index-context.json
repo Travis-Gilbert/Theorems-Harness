@@ -1,0 +1,46 @@
+{
+  "id": "index-context",
+  "title": "Index Context",
+  "delivery": "jit",
+  "priority": 95,
+  "must_be_visible_to_model": true,
+  "requires_remote": true,
+  "local_fallback": "skills/index/SKILL.md",
+  "backing": {
+    "product_verbs": ["index_context", "index_spine"],
+    "theorem_verbs": [
+      "graphql_query.memory",
+      "graphql_query.indexSpineOverview",
+      "graphql_query.queryReceipts",
+      "graphql_query.contextViews",
+      "graphql_query.mapArtifacts",
+      "rustyred_thg_index_spine"
+    ],
+    "runtime_modules": ["rustyred-rerank", "ValkeyCache"]
+  },
+  "triggers": {
+    "prompt_regex": "\\b(index context|index-aware|adaptive index|prior memory|prior decision|what did we decide|why did recall|context packet|query receipt|context view|map artifact|semantic memory|relevant memory|retrieve context)\\b",
+    "tool_name_regex": "apply_patch|exec_command|Edit|Write|Bash",
+    "tool_input_regex": "index_context|index_spine|graphql_query|recall|memory|ContextView|QueryReceipt"
+  },
+  "context": {
+    "directive": "Before broad recall or manual fusion, call index_context to assemble a compact GraphQL-backed context packet. Let the product layer use the learned reranker and cache metadata; hydrate only the records the packet justifies.",
+    "workflow": [
+      "Extract intent, entities, project hints, file paths, tool names, and exact ids.",
+      "Call index_context with a bounded limit and default cache policy.",
+      "Use returned top_context, rank_signals, and provenance as the working set.",
+      "Prefer fusion.mode learned_listwise_reranker or learned_cross_encoder_reranker; treat weighted_rrf as a labeled fallback.",
+      "Use index_spine only for narrower inspection or degraded-state diagnosis.",
+      "Escalate to full hydration only for the top records that are actually needed."
+    ],
+    "validation_defaults": [
+      "MCP tools/list includes index_context",
+      "index_context({\"query\":\"...\"}) returns top_context and learned reranker fusion metadata when reranker env is configured",
+      "A repeated identical index_context call reports cache.status=hit"
+    ],
+    "degraded_reasons": ["remote_unavailable", "contract_missing", "empty_query"]
+  },
+  "receipts": {
+    "events": ["IndexContextPrepared", "IndexContextCacheHit", "IndexContextDegraded"]
+  }
+}

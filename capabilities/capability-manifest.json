@@ -10,9 +10,12 @@
   ],
   "capabilities": [
     "./rust-engineering.json",
+    "./index-context.json",
     "./code-neighborhood.json",
     "./compound-engineering.json",
     "./coordination-context.json",
-    "./affordance-router.json"
+    "./affordance-router.json",
+    "./adaptive-index-spine.json",
+    "./service-reliability-doctor.json"
   ]
 }

@@ -1,0 +1,26 @@
+{
+  "id": "service-reliability-doctor",
+  "title": "Service Reliability Doctor",
+  "delivery": "explicit",
+  "priority": 60,
+  "must_be_visible_to_model": false,
+  "backing": {
+    "product_verbs": ["remote_doctor"],
+    "remote_probe_manifest": "/.well-known/theorems-harness/doctor.json",
+    "remote_probes": ["/health", "/ready", "/diagnostics/queue", "/diagnostics/dependencies", "/diagnostics/tenants"]
+  },
+  "triggers": {
+    "prompt_regex": "\\b(remote doctor|service reliability|durable queue|lease|heartbeat|reaper|degraded dependency|multiuser|tenant quota|noisy neighbor|rate limit|healthcheck|readiness)\\b"
+  },
+  "context": {
+    "directive": "Before treating the remote service as healthy, run the remote doctor and require structured async queue, dependency isolation, and tenant guard probes. Missing remote services should degrade explicitly; missing reliability probes should fail.",
+    "validation_defaults": [
+      "node src/bin/theorems-harness.mjs remote-doctor --json",
+      "THEOREMS_HARNESS_REMOTE_URL=<url> node src/bin/theorems-harness.mjs remote-doctor --json",
+      "npm test -- tests/diagnostics/remote-doctor.test.mjs"
+    ]
+  },
+  "receipts": {
+    "events": ["RemoteDoctorRun", "RemoteReliabilityProbe"]
+  }
+}
