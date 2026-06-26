@@ -1,0 +1,47 @@
+{
+  "id": "rust-engineering",
+  "title": "Rust Engineering",
+  "delivery": "ambient",
+  "priority": 100,
+  "must_be_visible_to_model": true,
+  "local_fallback": "skills/rust-engineering/SKILL.md",
+  "backing": {
+    "theorem_verbs": ["skill_get", "skill_apply", "ensemble_select", "harness_prepare"],
+    "pack_id": "rust-engineering",
+    "pack_content_hash": "sha256:325ba9cbba248cadb5edc2c207f1b5071331d64e7e2191f8ebbfa3d2fa92cf43"
+  },
+  "triggers": {
+    "prompt_regex": "\\b(rust|cargo|crate|borrow checker|trait|tokio|axum|tonic|pyo3|maturin|redcore|graphstore|mcp server)\\b",
+    "file_extensions": [".rs"],
+    "file_names": ["Cargo.toml", "Cargo.lock", "build.rs"],
+    "tool_name_regex": "apply_patch|exec_command|Edit|Write|Bash",
+    "tool_input_regex": "\\.rs\\b|Cargo\\.toml|cargo (test|check|clippy|build)"
+  },
+  "context": {
+    "directive": "Start from the live crate/workspace shape; prefer local crate patterns over generic Rust advice; keep ownership explicit; treat compiler errors as design feedback; validate narrowly first, then widen.",
+    "workflow": [
+      "Observe rg --files, Cargo.toml, Cargo.lock, crate-local docs, and nearby tests.",
+      "Classify member vs standalone crate vs generated bridge before choosing commands.",
+      "Use typed Rust APIs and local module patterns over ad hoc string parsing.",
+      "Validate the smallest crate or manifest that owns the behavior.",
+      "Record reusable Rust patterns, bugs, validators, and postmortems as skill-pack signals."
+    ],
+    "validation_defaults": [
+      "cargo test -p <crate> <test_name>",
+      "cargo test --manifest-path <path>",
+      "cargo check -p <crate>",
+      "cargo clippy -p <crate> --all-targets --no-deps -- -D warnings",
+      "git diff --check"
+    ],
+    "anti_patterns": [
+      "Assuming the repository has one top-level Cargo workspace.",
+      "Adding code that depends on an undeclared manifest edge.",
+      "Treating formatting or grep as runtime proof."
+    ]
+  },
+  "receipts": {
+    "start": "SkillUseStart",
+    "outcome": "SkillUseOutcome",
+    "remote_verb": "skill_apply"
+  }
+}

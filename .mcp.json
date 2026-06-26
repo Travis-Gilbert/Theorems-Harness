@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "theorems-harness-product": {
+      "command": "bash",
+      "args": [
+        "-lc",
+        "ROOT=\"${THEOREMS_HARNESS_ROOT:-${PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT}}}\"; if [ -z \"$ROOT\" ]; then echo 'THEOREMS_HARNESS_ROOT, PLUGIN_ROOT, or CLAUDE_PLUGIN_ROOT is required' >&2; exit 64; fi; exec node \"$ROOT/src/mcp/server.mjs\""
+      ]
+    }
+  }
+}
