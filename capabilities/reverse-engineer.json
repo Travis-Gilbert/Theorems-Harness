@@ -1,0 +1,75 @@
+{
+  "id": "reverse-engineer",
+  "title": "Reverse Engineer",
+  "delivery": "jit",
+  "priority": 92,
+  "must_be_visible_to_model": true,
+  "local_fallback": "skills/reverse-engineer/SKILL.md",
+  "backing": {
+    "product_verbs": [
+      "index_context",
+      "index_spine"
+    ],
+    "theorem_verbs": [
+      "context_pack",
+      "code_to_spec",
+      "drift_detector",
+      "pattern_memory",
+      "reconstruct.load",
+      "reconstruct.analyze",
+      "reconstruct.lift",
+      "reconstruct.components.recover",
+      "reconstruct.plan.compile"
+    ],
+    "runtime_modules": [
+      "rustyred-thg-code",
+      "rustyred-thg-reconstruct",
+      "rustyred-thg-reconstruct-harness"
+    ]
+  },
+  "triggers": {
+    "prompt_regex": "\\b(reverse[- ]engineer|reverse engineering|reconstruct|rebuild equivalent|figure out how .* (works|is built)|clone the behavior|parity plan|extract spec|code to spec|drift detector|decompile|disassemble|binary analysis|feature archaeology)\\b",
+    "tool_name_regex": "apply_patch|exec_command|Edit|Write|Bash",
+    "tool_input_regex": "\\b(reverse[- ]engineer|reconstruct|code_to_spec|drift_detector|tree[-_ ]sitter|repo|github\\.com|https?://|binary|artifact)\\b"
+  },
+  "context": {
+    "directive": "Reverse engineer from evidence: start with the supplied repo, path, URL, feature, or artifact; build a grounded map; produce a behavior spec, parity checklist, or rebuild plan; validate against an oracle; and report unavailable Theorem reconstruction tooling as a degraded state instead of guessing.",
+    "workflow": [
+      "Classify the target as repo/path, URL/site, feature, API/workflow, or binary/artifact.",
+      "Inspect authoritative source first: files, manifests, routes, docs, tests, live browser/network behavior, or provided artifact bytes.",
+      "Map entrypoints, components, APIs, data stores, state transitions, permissions, errors, dependencies, and deploy/runtime boundaries.",
+      "Write reconstruction artifacts sized to the task: architecture map, behavior spec, data/API contract, parity checklist, implementation plan, and unknowns ledger.",
+      "Use Theorem code compiler, drift detector, pattern memory, or binary reconstruction tools when available; otherwise label the missing backend explicitly.",
+      "Validate with tests, typecheck, build, smoke route, screenshot comparison, API fixture, golden output, or replayed user flow."
+    ],
+    "validation_defaults": [
+      "Evidence map includes concrete file paths, URLs, API calls, routes, or artifact identifiers.",
+      "Rebuild/parity plan includes at least one oracle or names the missing oracle.",
+      "For repo targets, rg --files plus manifest/test inspection occurred before claims.",
+      "For URL targets, rendered behavior and network/API observations are separated from inference.",
+      "For binary targets, unavailable reconstruction tooling is reported as degraded instead of source-level certainty."
+    ],
+    "anti_patterns": [
+      "Treating visual similarity as behavioral parity.",
+      "Using training memory when the named source can be inspected.",
+      "Reconstructing private data or bypassing authentication.",
+      "Skipping the oracle because the map looks plausible.",
+      "Confusing competitor-copying instructions with evidence-backed behavior analysis."
+    ],
+    "degraded_reasons": [
+      "target_missing",
+      "remote_unavailable",
+      "artifact_unavailable",
+      "oracle_missing",
+      "reconstruction_backend_missing"
+    ]
+  },
+  "receipts": {
+    "events": [
+      "ReverseEngineerStarted",
+      "EvidenceMapProduced",
+      "ReconstructionPlanProduced",
+      "ReverseEngineerDegraded"
+    ]
+  }
+}

@@ -111,3 +111,9 @@ native Theorem/RustyRed `rustyred_thg_index_spine` tool over the configured
 remote MCP endpoint and returns explicit `remote_unavailable` or
 `contract_missing` states instead of silently pretending the adaptive index
 cannot answer.
+
+The `reverse-engineer` skill is the agent-facing wrapper for evidence-first
+reconstruction work. It starts from a repo, path, URL, feature, API, workflow, or
+artifact; produces grounded maps, behavior specs, parity checklists, and rebuild
+plans; and routes deeper code/compiler/binary reconstruction to Theorem-owned
+substrate tooling when available.

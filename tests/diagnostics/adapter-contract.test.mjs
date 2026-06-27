@@ -30,3 +30,13 @@ test("local adapter resolves cached index skill from manifest", async () => {
   assert.equal(result.mode, "cached-skill");
   assert.match(result.path, /skills\/index\/SKILL\.md$/);
 });
+
+test("local adapter resolves cached reverse engineer skill from manifest", async () => {
+  const adapter = createLocalAdapter();
+  const result = await adapter.applySkill({ skill_id: "reverse-engineer" });
+
+  assert.equal(result.ok, true);
+  assert.equal(result.skill_id, "reverse-engineer");
+  assert.equal(result.mode, "cached-skill");
+  assert.match(result.path, /skills\/reverse-engineer\/SKILL\.md$/);
+});
