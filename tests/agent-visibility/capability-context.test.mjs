@@ -41,6 +41,20 @@ test("index prompt activates Index Context skill guidance", async () => {
   assert.match(markdown, /index_context/);
 });
 
+test("reverse engineering prompt activates cached Reverse Engineer guidance", async () => {
+  const { packet, markdown } = await compileContext({
+    prompt: "Reverse engineer this GitHub repo into a rebuild plan and parity checklist",
+    cwd: process.cwd(),
+    changed_files: [],
+  });
+
+  assert.equal(packet.status, "ok");
+  assert.equal(packet.active_capabilities.some((item) => item.id === "reverse-engineer"), true);
+  assert.equal(packet.receipt_events.some((item) => item.type === "CapabilityActivated"), true);
+  assert.match(markdown, /Reverse Engineer/);
+  assert.match(markdown, /Reverse engineer from evidence/);
+});
+
 test("code neighborhood reports no_manifest instead of silent null", async () => {
   const { packet, markdown } = await compileContext({
     prompt: "What is the impact of changing this code path?",
