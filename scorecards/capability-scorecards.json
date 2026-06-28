@@ -45,11 +45,12 @@
     "reverse-engineer": {
       "status": "measured-local",
       "current": {
-        "visibility_tests": 2,
+        "visibility_tests": 3,
         "degradation_rate": 0
       },
       "evidence": [
         "tests/agent-visibility/capability-context.test.mjs",
+        "tests/agent-visibility/capability-coverage.test.mjs",
         "tests/diagnostics/adapter-contract.test.mjs"
       ]
     },
