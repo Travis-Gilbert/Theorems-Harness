@@ -64,6 +64,7 @@ test("reverse-engineer is a tracked, model-visible, Theorem-backed capability", 
   const re = manifest.capabilities.find((capability) => capability.id === "reverse-engineer");
   assert.ok(re, "reverse-engineer is declared in the manifest");
   assert.equal(re.delivery, "jit");
+  assert.equal(re.must_be_visible_to_model, true, "reverse-engineer must remain model-visible");
   assert.ok(re.context?.directive, "reverse-engineer carries a model-visible directive");
   assert.ok(
     (re.backing?.theorem_verbs ?? []).some((verb) => /reconstruct/.test(verb)),
