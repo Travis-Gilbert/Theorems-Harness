@@ -11,6 +11,7 @@ The product repo tests what the agent actually sees.
 - The MCP facade and hook compiler return the same packet shape.
 - Background abilities declare receipt expectations without injecting large
   context.
+- Lifecycle hooks activate Compound Engineering on `PostToolUse` and `Stop`.
 - The doctor command can write receipts to a temporary log.
 - Capability scorecards exist for every manifest entry.
 

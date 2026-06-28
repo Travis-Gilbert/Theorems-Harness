@@ -55,6 +55,19 @@ test("reverse engineering prompt activates cached Reverse Engineer guidance", as
   assert.match(markdown, /Reverse engineer from evidence/);
 });
 
+test("compound prompt activates background action-candidate receipts", async () => {
+  const { packet, markdown } = await compileContext({
+    prompt: "Turn this postmortem into a reusable learning signal",
+    cwd: process.cwd(),
+    changed_files: [],
+  });
+
+  assert.equal(packet.active_capabilities.some((item) => item.id === "compound-engineering"), true);
+  assert.equal(packet.receipts_required.includes("CompoundActionItem"), true);
+  assert.match(markdown, /Compound Engineering/);
+  assert.match(markdown, /reviewable action candidates/);
+});
+
 test("code neighborhood reports no_manifest instead of silent null", async () => {
   const { packet, markdown } = await compileContext({
     prompt: "What is the impact of changing this code path?",

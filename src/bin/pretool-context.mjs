@@ -3,9 +3,10 @@ import { compileContext } from "../product/compile-context.mjs";
 import { hookResponse, printJson, readJsonFromStdin } from "../product/hook-io.mjs";
 
 const input = await readJsonFromStdin();
+const hookEvent = input.hook_event_name ?? input.hookEvent ?? "PreToolUse";
 const { packet, markdown } = await compileContext({
   ...input,
-  hookEvent: input.hook_event_name ?? "PreToolUse",
+  hookEvent,
 });
 
-printJson(hookResponse(markdown, packet, "PreToolUse"));
+printJson(hookResponse(markdown, packet, hookEvent));

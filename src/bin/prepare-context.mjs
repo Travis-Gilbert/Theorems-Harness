@@ -3,9 +3,10 @@ import { compileContext } from "../product/compile-context.mjs";
 import { hookResponse, printJson, readJsonFromStdin } from "../product/hook-io.mjs";
 
 const input = await readJsonFromStdin();
+const hookEvent = input.hook_event_name ?? input.hookEvent ?? "UserPromptSubmit";
 const { packet, markdown } = await compileContext({
   ...input,
-  hookEvent: input.hook_event_name ?? "UserPromptSubmit",
+  hookEvent,
 });
 
-printJson(hookResponse(markdown, packet, "UserPromptSubmit"));
+printJson(hookResponse(markdown, packet, hookEvent));

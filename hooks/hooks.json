@@ -27,6 +27,33 @@
           }
         ]
       }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash|Edit|Write|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "shell": "bash",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/src/bin/prepare-context.mjs\"",
+            "timeout": 10,
+            "statusMessage": "Recording Theorems Harness outcome signals"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "shell": "bash",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/src/bin/prepare-context.mjs\"",
+            "timeout": 10,
+            "statusMessage": "Banking Theorems Harness receipts"
+          }
+        ]
+      }
     ]
   }
 }

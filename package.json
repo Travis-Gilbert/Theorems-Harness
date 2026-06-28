@@ -25,6 +25,7 @@
     ".": "./src/product/compile-context.mjs",
     "./adapter": "./src/adapters/local-adapter.mjs",
     "./contract": "./src/adapters/contract.mjs",
+    "./compound-engineering": "./src/product/compound-engineering.mjs",
     "./doctor": "./src/product/doctor.mjs",
     "./index-context": "./src/product/index-context.mjs",
     "./index-spine": "./src/product/index-spine.mjs",

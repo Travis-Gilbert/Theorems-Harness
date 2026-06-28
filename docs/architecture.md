@@ -14,7 +14,8 @@ substrate.
 3. **Capability compiler**: `capabilities/capability-manifest.json` maps abilities
    to triggers, delivery tier, fallback, backing verbs, and receipts.
 4. **Host delivery**: hooks compile model-visible context before Claude/Codex
-   acts. The MCP facade exposes the same compiler for explicit diagnostics.
+   acts and lifecycle packets after tool/session boundaries. The MCP facade
+   exposes the same compiler for explicit diagnostics.
 
 ## Delivery Tiers
 
@@ -22,6 +23,10 @@ substrate.
 - `jit`: injected immediately before relevant tool use or after failure signals.
 - `explicit`: available as a tool, command, or user-invoked operation.
 - `background`: runs receipt and learning loops without bloating context.
+
+`compound-engineering` is the canonical background lifecycle capability. Host
+hooks activate it on `PostToolUse` and `Stop`, while the MCP facade and native
+HTTP summary keep the same signal inspectable when Theorem runs locally.
 
 ## Acceptance Rule
 

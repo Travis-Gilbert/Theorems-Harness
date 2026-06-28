@@ -83,6 +83,7 @@ The MCP facade includes:
 - `remote_doctor`
 - `index_context`
 - `index_spine`
+- `compound_engineering`
 - `write_receipt`
 
 `scorecards/capability-scorecards.json` is the measurement surface for trigger

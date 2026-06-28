@@ -18,6 +18,7 @@ test("MCP facade lists product tools", async () => {
   assert.equal(response.result.tools.some((tool) => tool.name === "remote_doctor"), true);
   assert.equal(response.result.tools.some((tool) => tool.name === "index_context"), true);
   assert.equal(response.result.tools.some((tool) => tool.name === "index_spine"), true);
+  assert.equal(response.result.tools.some((tool) => tool.name === "compound_engineering"), true);
   assert.equal(response.result.tools.some((tool) => tool.name === "capability_scorecards"), true);
 });
 
@@ -130,6 +131,26 @@ test("MCP facade degrades index context when no remote MCP is configured", async
   assert.equal(payload.status, "degraded");
   assert.equal(payload.reason, "remote_unavailable");
   assert.equal(payload.product_tool, "index_context");
+});
+
+test("MCP facade degrades compound engineering when no remote harness is configured", async () => {
+  const response = await handleRpcMessage({
+    jsonrpc: "2.0",
+    id: 8,
+    method: "tools/call",
+    params: {
+      name: "compound_engineering",
+      arguments: {
+        remote_url: "",
+        tenant: "Travis-Gilbert",
+      },
+    },
+  });
+
+  const payload = JSON.parse(response.result.content[0].text);
+  assert.equal(payload.status, "degraded");
+  assert.equal(payload.reason, "remote_unavailable");
+  assert.equal(payload.product_tool, "compound_engineering");
 });
 
 test("MCP facade assembles and caches GraphQL index context", async () => {
@@ -259,6 +280,69 @@ test("MCP facade assembles and caches GraphQL index context", async () => {
     assert.equal(secondPayload.cache.status, "hit");
     assert.equal(requests.filter((request) => request.url === "/mcp").length, 1);
     assert.equal(requests.filter((request) => request.url === "/rerank").length, 1);
+  } finally {
+    server.close();
+    await once(server, "close");
+  }
+});
+
+test("MCP facade proxies compound engineering to native HTTP summary", async () => {
+  const requests = [];
+  const server = createServer((request, response) => {
+    requests.push({
+      method: request.method,
+      url: request.url,
+      authorization: request.headers.authorization,
+    });
+    writeJson(response, {
+      tenant: "Travis-Gilbert",
+      compound_engineering: {
+        action_count: 2,
+        action_items: [
+          {
+            action_type: "open_fix_task",
+            summary: "same test failed twice",
+          },
+          {
+            action_type: "review_promotion_proposal",
+            summary: "pack passed threshold",
+          },
+        ],
+      },
+    });
+  });
+  server.listen(0, "127.0.0.1");
+  await once(server, "listening");
+  const { port } = server.address();
+
+  try {
+    const response = await handleRpcMessage({
+      jsonrpc: "2.0",
+      id: 10,
+      method: "tools/call",
+      params: {
+        name: "compound_engineering",
+        arguments: {
+          remote_url: `http://127.0.0.1:${port}`,
+          token: "test-token",
+          tenant: "Travis-Gilbert",
+          cluster_key: "repeat-test",
+          limit: 10,
+        },
+      },
+    });
+
+    const payload = JSON.parse(response.result.content[0].text);
+    assert.equal(payload.status, "ok");
+    assert.equal(payload.mode, "remote-http-proxy");
+    assert.equal(payload.result.compound_engineering.action_count, 2);
+    assert.equal(requests[0].method, "GET");
+    assert.equal(requests[0].authorization, "Bearer test-token");
+    const url = new URL(`http://127.0.0.1${requests[0].url}`);
+    assert.equal(url.pathname, "/harness/compound-engineering");
+    assert.equal(url.searchParams.get("tenant"), "Travis-Gilbert");
+    assert.equal(url.searchParams.get("cluster_key"), "repeat-test");
+    assert.equal(url.searchParams.get("limit"), "10");
   } finally {
     server.close();
     await once(server, "close");

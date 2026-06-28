@@ -3,6 +3,7 @@ import { stdin, stdout } from "node:process";
 
 import { createLocalAdapter } from "../adapters/local-adapter.mjs";
 import { compileContext } from "../product/compile-context.mjs";
+import { queryCompoundEngineering } from "../product/compound-engineering.mjs";
 import { runDoctor } from "../product/doctor.mjs";
 import { queryIndexContext } from "../product/index-context.mjs";
 import { queryIndexSpine } from "../product/index-spine.mjs";
@@ -172,6 +173,25 @@ export function toolsList() {
       },
     },
     {
+      name: "compound_engineering",
+      description: "Read the Compound Engineering summary from the harness: captures, gate records, and reviewable action candidates for recurring outcomes.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          tenant: { type: "string" },
+          tenant_slug: { type: "string" },
+          cluster_key: { type: "string" },
+          since: { type: "string" },
+          limit: { type: "number" },
+          remote_url: { type: "string" },
+          http_url: { type: "string" },
+          http_path: { type: "string" },
+          token: { type: "string" },
+          timeout_ms: { type: "number" },
+        },
+      },
+    },
+    {
       name: "write_receipt",
       description: "Append an explicit Theorems Harness receipt event for diagnostics or host integration.",
       inputSchema: {
@@ -228,6 +248,10 @@ async function handleToolCall(message) {
 
   if (name === "index_context") {
     return textResult(message.id, await queryIndexContext(args));
+  }
+
+  if (name === "compound_engineering") {
+    return textResult(message.id, await queryCompoundEngineering(args));
   }
 
   if (name === "write_receipt") {

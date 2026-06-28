@@ -65,8 +65,15 @@
       ]
     },
     "compound-engineering": {
-      "status": "unmeasured",
-      "evidence": []
+      "status": "measured-local",
+      "current": {
+        "visibility_tests": 2,
+        "degradation_reason": "remote_unavailable"
+      },
+      "evidence": [
+        "tests/agent-visibility/mcp-server.test.mjs",
+        "tests/agent-visibility/capability-context.test.mjs"
+      ]
     },
     "coordination-context": {
       "status": "degraded",
