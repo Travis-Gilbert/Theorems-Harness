@@ -1,5 +1,7 @@
 #!/usr/bin/env node
+import { resolve } from "node:path";
 import { stdin, stdout } from "node:process";
+import { fileURLToPath } from "node:url";
 
 import { createLocalAdapter } from "../adapters/local-adapter.mjs";
 import { compileContext } from "../product/compile-context.mjs";
@@ -321,16 +323,22 @@ function parseFramedMessages(buffer) {
 
 async function runStdio() {
   let buffer = Buffer.alloc(0);
-  stdin.on("data", async (chunk) => {
+  for await (const chunk of stdin) {
     buffer = Buffer.concat([buffer, chunk]);
     const parsed = parseFramedMessages(buffer);
     buffer = parsed.rest;
     for (const message of parsed.messages) {
       writeMessage(await handleRpcMessage(message));
     }
-  });
+  }
+
+  const parsed = parseFramedMessages(buffer);
+  buffer = parsed.rest;
+  for (const message of parsed.messages) {
+    writeMessage(await handleRpcMessage(message));
+  }
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (fileURLToPath(import.meta.url) === resolve(process.argv[1])) {
   await runStdio();
 }

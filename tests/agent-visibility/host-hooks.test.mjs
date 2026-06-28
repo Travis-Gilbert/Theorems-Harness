@@ -89,7 +89,11 @@ test("Claude package keeps the local product MCP facade out of Claude.ai", () =>
 
   assert.equal(claudePlugin.mcpServers, undefined);
   assert.equal(codexPlugin.mcpServers, "./.mcp.json");
-  assert.ok(localMcp.mcpServers["theorems-harness-product"]);
+  assert.deepEqual(localMcp.mcpServers["theorems-harness-product"], {
+    command: "node",
+    args: ["src/mcp/server.mjs"],
+    cwd: ".",
+  });
 });
 
 function runHook(script, input) {

@@ -1,9 +1,14 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import { once } from "node:events";
 import { createServer } from "node:http";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import test from "node:test";
 
 import { handleRpcMessage } from "../../src/mcp/server.mjs";
+
+const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 
 test("MCP facade lists product tools", async () => {
   const response = await handleRpcMessage({
@@ -20,6 +25,21 @@ test("MCP facade lists product tools", async () => {
   assert.equal(response.result.tools.some((tool) => tool.name === "index_spine"), true);
   assert.equal(response.result.tools.some((tool) => tool.name === "compound_engineering"), true);
   assert.equal(response.result.tools.some((tool) => tool.name === "capability_scorecards"), true);
+});
+
+test("MCP stdio server responds to a single exact framed tools/list request", () => {
+  const body = JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/list" });
+  const frame = `Content-Length: ${Buffer.byteLength(body)}\r\n\r\n${body}`;
+  const child = spawnSync(process.execPath, [resolve(root, "src/mcp/server.mjs")], {
+    cwd: root,
+    encoding: "utf8",
+    input: frame,
+  });
+
+  assert.equal(child.status, 0, child.stderr);
+  assert.match(child.stdout, /Content-Length:/);
+  assert.match(child.stdout, /prepare_context/);
+  assert.match(child.stdout, /index_context/);
 });
 
 test("MCP facade compiles Rust context packet", async () => {
