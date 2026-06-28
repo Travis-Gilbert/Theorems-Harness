@@ -18,6 +18,14 @@ The repo owns:
 - SDK/adapter routing
 - agent visibility tests
 
+## Host Packaging
+
+The Claude product package is skills and hooks only. It intentionally does not
+register this repo's local stdio MCP facade, because Claude.ai expects MCP tool
+servers it can authenticate and reach remotely. The product-local
+`theorems-harness-product` MCP facade remains exposed through the Codex/local
+package manifest for desktop and local harness diagnostics.
+
 Theorem/RustyRed own:
 
 - graph storage

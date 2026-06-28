@@ -82,6 +82,16 @@ test("Claude and Codex hook configs install lifecycle Compound Engineering trigg
   }
 });
 
+test("Claude package keeps the local product MCP facade out of Claude.ai", () => {
+  const claudePlugin = readJson(".claude-plugin/plugin.json");
+  const codexPlugin = readJson(".codex-plugin/plugin.json");
+  const localMcp = readJson(".mcp.json");
+
+  assert.equal(claudePlugin.mcpServers, undefined);
+  assert.equal(codexPlugin.mcpServers, "./.mcp.json");
+  assert.ok(localMcp.mcpServers["theorems-harness-product"]);
+});
+
 function runHook(script, input) {
   const child = spawnSync(process.execPath, [resolve(root, script)], {
     cwd: root,

@@ -8,7 +8,6 @@
   "repository": "https://github.com/Travis-Gilbert/Theorems-Harness",
   "license": "MIT",
   "keywords": ["mcp", "harness", "agent-context", "rust", "capability-manifest"],
-  "mcpServers": "./.mcp.json",
   "skills": "./skills/",
   "hooks": "./hooks/hooks.json"
 }
