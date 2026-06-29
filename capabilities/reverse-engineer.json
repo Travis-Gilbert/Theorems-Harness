@@ -6,25 +6,29 @@
   "must_be_visible_to_model": true,
   "local_fallback": "skills/reverse-engineer/SKILL.md",
   "backing": {
-    "product_verbs": [
-      "index_context",
-      "index_spine"
-    ],
-    "theorem_verbs": [
-      "context_pack",
-      "code_to_spec",
-      "drift_detector",
-      "pattern_memory",
-      "reconstruct.load",
-      "reconstruct.analyze",
-      "reconstruct.lift",
-      "reconstruct.components.recover",
-      "reconstruct.plan.compile"
+    "product_verbs": ["reconstruct_binary", "code_ingest", "compute_code"],
+    "theorem_verbs": ["reconstruct_binary", "code_ingest", "compute_code"],
+    "reconstruct_binary_operations": [
+      "load",
+      "analyze",
+      "lift",
+      "graph_write",
+      "components_recover",
+      "plan_compile",
+      "instruction_get",
+      "validate",
+      "receipt_write"
     ],
     "runtime_modules": [
-      "rustyred-thg-code",
+      "rustyred-thg-binformat",
+      "rustyred-thg-disasm",
+      "rustyred-thg-lift",
       "rustyred-thg-reconstruct",
-      "rustyred-thg-reconstruct-harness"
+      "rustyred-thg-reconstruct-harness",
+      "rustyred-thg-code"
+    ],
+    "not_yet_wired": [
+      "theorem.ingest.datawave (rustyred-thg-datawave-harness): DATAWAVE intake pack exists as a crate but is not registered in the MCP server, so it is not agent-callable; report degraded if the task needs it"
     ]
   },
   "triggers": {
