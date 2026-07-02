@@ -11,6 +11,8 @@ Interpret `$1` as an optional operation:
 
 - `search`, `context`, `explain`, `list`, `status`: call `compute_code` with the
   matching operation.
+- `grep`, `exact`, `semantic`, or `mgrep`: call `grep` for exact local matches
+  or `semantic_grep` for ranked local code/file neighborhoods.
 - `ingest`, `reindex`, or `session-reingest`: call `compute_code` with the ingest
   or reindex operation. Require an explicit local path, repo, or URL before
   ingesting.
@@ -28,6 +30,8 @@ Prefer these product tools:
 2. `understand_code` for component, feature, ownership, or risk packets.
 3. `impact` for blast-radius analysis.
 4. `oracle` for validators, obligations, and evidence-backed checks.
+5. `grep` or `semantic_grep` when the user needs fast local file matches before
+   graph-backed code context.
 
 If the code MCP surface is unavailable or the code KG has no manifest, report the
 structured degraded reason such as `remote_unavailable`, `contract_missing`, or

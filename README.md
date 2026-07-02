@@ -97,6 +97,10 @@ The MCP facade includes:
 - `remote_doctor`
 - `index_context`
 - `index_spine`
+- `grep`
+- `semantic_grep`
+- `memory_grep`
+- `mgrep`
 - `query_data`
 - `retrieve_memory`
 - `turn_start`
@@ -124,6 +128,7 @@ surfaces:
   and Datawave modes
 - `/memory` routes to `retrieve_memory`, `query_data`, `turn_start`, and
   `evidence_bundle`
+- `/grep` routes to `grep`, `semantic_grep`, `memory_grep`, and `mgrep`
 
 `scorecards/capability-scorecards.json` is the measurement surface for trigger
 precision, trigger recall, prompt overhead, latency, degradation rate, and host
@@ -151,6 +156,15 @@ native Theorem/RustyRed `rustyred_thg_index_spine` tool over the configured
 remote MCP endpoint and returns explicit `remote_unavailable` or
 `contract_missing` states instead of silently pretending the adaptive index
 cannot answer.
+
+The grep tools are the flat search surface. `grep` is a bounded local literal or
+regex search with code-neighborhood formatting: file, line, nearest symbol, and
+before/after context. `semantic_grep` ranks local file chunks with term, phrase,
+path, and symbol signals, or routes to native `compute_code` when
+`backend=native` or `backend=code_graph`. `memory_grep` searches memory through
+the Data API rather than scraping private local memory files. `mgrep` is the
+multi-source router for code/files, memory/data, web/docs/API evidence, or
+`source=all` combined searches.
 
 The Data API tools are the records membrane from Theorem PR-103. `query_data`
 queries typed records with deterministic filters, cursoring, provenance, rank

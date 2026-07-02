@@ -1,0 +1,53 @@
+{
+  "id": "grep-tools",
+  "title": "Grep Tools",
+  "delivery": "explicit",
+  "priority": 88,
+  "must_be_visible_to_model": true,
+  "requires_remote": false,
+  "backing": {
+    "product_verbs": ["grep", "semantic_grep", "memory_grep", "mgrep"],
+    "theorem_verbs": [
+      "compute_code.search",
+      "query_data.memory_docs",
+      "retrieve_memory",
+      "observe_web"
+    ],
+    "runtime_modules": ["theorems-harness-product::grep"]
+  },
+  "triggers": {
+    "prompt_regex": "\\b(grep|semantic grep|memory grep|mgrep|search files|search code|find exact|regex search|literal match|find symbol|search memory records)\\b",
+    "tool_name_regex": "apply_patch|exec_command|Edit|Write|Bash",
+    "tool_input_regex": "grep|semantic_grep|memory_grep|mgrep|rg\\b|ripgrep"
+  },
+  "context": {
+    "directive": "Use grep for bounded exact local file search, semantic_grep for ranked file/code neighborhoods, memory_grep for Data API memory records, and mgrep when the user asks for multi-source code, memory, web, docs, or API search.",
+    "workflow": [
+      "Prefer exact grep for symbols, error strings, filenames, config keys, and log lines.",
+      "Use semantic_grep when the user describes behavior, intent, or concepts rather than exact text.",
+      "Use memory_grep only through the Data API so tenant, repo, path, tag, source, room, status, and validity constraints remain auditable.",
+      "Use mgrep source=all only when the user explicitly wants multiple source classes, and report degraded sources separately."
+    ],
+    "validation_defaults": [
+      "MCP tools/list includes grep, semantic_grep, memory_grep, and mgrep.",
+      "grep returns bounded local matches with file, line, symbol, and context.",
+      "memory_grep degrades with remote_unavailable when native MCP is not configured."
+    ],
+    "degraded_reasons": [
+      "empty_query",
+      "invalid_pattern",
+      "pattern_too_large",
+      "remote_unavailable",
+      "contract_missing"
+    ]
+  },
+  "receipts": {
+    "events": [
+      "GrepRun",
+      "SemanticGrepRun",
+      "MemoryGrepRun",
+      "MultiSourceGrepRun",
+      "GrepDegraded"
+    ]
+  }
+}

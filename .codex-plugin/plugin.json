@@ -1,6 +1,6 @@
 {
   "name": "theorems-harness-product",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Agent delivery surface for Theorems Harness capabilities, hooks, and MCP facade.",
   "author": {
     "name": "Travis Gilbert"
@@ -14,12 +14,13 @@
     "./commands/graphql.md",
     "./commands/code.md",
     "./commands/reconstruct.md",
-    "./commands/memory.md"
+    "./commands/memory.md",
+    "./commands/grep.md"
   ],
   "hooks": "./hooks/codex-hooks.json",
   "interface": {
     "displayName": "Theorems Harness Product",
-    "shortDescription": "Product-facing Data API, reconstruction, index, and capability visibility facade.",
+    "shortDescription": "Product-facing Data API, grep, reconstruction, index, and capability visibility facade.",
     "longDescription": "Theorems Harness Product complements the broader theorems-harness workflow pack. It exposes the host-visible product MCP facade, product skills, hooks, and capability contracts that route into Theorem/RustyRed substrate tools.",
     "developerName": "Travis Gilbert",
     "category": "Developer Tools",
@@ -28,9 +29,9 @@
       "Interactive"
     ],
     "defaultPrompt": [
-      "Use Theorems Harness Product for Data API, reconstruction, index context, capability visibility, and product MCP diagnostics.",
+      "Use Theorems Harness Product for Data API, grep, reconstruction, index context, capability visibility, and product MCP diagnostics.",
       "Keep the broader theorems-harness workflow pack as the planning/execution/coordination control plane; this product package is the exposed facade for concrete substrate-backed tools.",
-      "When reconstruct, compute_code, query_data, retrieve_memory, index_context, or index_spine are available, prefer those stable product names over lower-level native Theorem/RustyRed tool names.",
+      "When grep, semantic_grep, memory_grep, mgrep, reconstruct, compute_code, query_data, retrieve_memory, index_context, or index_spine are available, prefer those stable product names over lower-level native Theorem/RustyRed tool names.",
       "If a product tool degrades, report the structured reason such as remote_unavailable or contract_missing instead of silently falling back."
     ]
   }

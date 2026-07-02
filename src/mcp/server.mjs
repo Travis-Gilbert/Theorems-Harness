@@ -7,6 +7,7 @@ import { createLocalAdapter } from "../adapters/local-adapter.mjs";
 import { compileContext } from "../product/compile-context.mjs";
 import { queryCompoundEngineering } from "../product/compound-engineering.mjs";
 import { runDoctor } from "../product/doctor.mjs";
+import { queryGrep, querySemanticGrep } from "../product/grep.mjs";
 import { queryIndexContext } from "../product/index-context.mjs";
 import { queryIndexSpine } from "../product/index-spine.mjs";
 import { loadCapabilityManifest } from "../product/load-manifest.mjs";
@@ -33,6 +34,30 @@ const DATA_API_PRODUCT_TOOLS = new Set([
   "impact",
   "oracle",
   "observe_web",
+]);
+const GREP_NATIVE_BACKENDS = new Set([
+  "native",
+  "remote",
+  "code_graph",
+  "code-graph",
+  "compute_code",
+  "compute-code",
+]);
+const MEMORY_GREP_SOURCES = new Set([
+  "memory",
+  "memory_docs",
+  "memory-docs",
+  "records",
+  "data",
+  "data_api",
+  "data-api",
+]);
+const WEB_GREP_SOURCES = new Set([
+  "web",
+  "url",
+  "urls",
+  "docs",
+  "api",
 ]);
 const COMPOUND_CONFIG_KEYS = new Set([
   "args",
@@ -131,7 +156,7 @@ export async function handleRpcMessage(message) {
       protocolVersion: "2024-11-05",
       serverInfo: {
         name: "theorems-harness-product",
-        version: "0.1.0",
+        version: "0.1.4",
       },
       capabilities: {
         tools: {},
@@ -283,6 +308,90 @@ export function toolsList() {
           },
           reranker_model: { type: "string" },
           reranker_token: { type: "string" },
+        },
+      },
+    },
+    {
+      name: "grep",
+      description: "Run bounded local literal or regex search with code-neighborhood formatting over files, docs, or other text in the workspace.",
+      inputSchema: {
+        type: "object",
+        properties: grepInputSchemaProperties(),
+      },
+    },
+    {
+      name: "semantic_grep",
+      description: "Run local hybrid semantic-ish search over file chunks, or route to native compute_code when backend=native/code_graph.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          ...grepInputSchemaProperties(),
+          backend: {
+            type: "string",
+            enum: ["local", "native", "remote", "code_graph", "compute_code"],
+          },
+          chunk_lines: { type: "number" },
+          chunk_overlap: { type: "number" },
+          ...nativeMcpConfigSchemaProperties(),
+        },
+      },
+    },
+    {
+      name: "memory_grep",
+      description: "Search memory through the RustyRed Data API, preserving deterministic tenant, repo, path, tag, source, room, status, and validity filters.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          tenant: { type: "string" },
+          tenant_slug: { type: "string" },
+          query: { type: "string" },
+          pattern: { type: "string" },
+          text: { type: "string" },
+          project: { type: "string" },
+          repo: { type: "string" },
+          path: { type: "string" },
+          room: { type: "string" },
+          room_id: { type: "string" },
+          tags: { type: "array", items: { type: "string" } },
+          source: { type: "string" },
+          status: { type: "string" },
+          validity: { type: "string" },
+          collection: { type: "string" },
+          id: { type: "string" },
+          record_ids: { type: "array", items: { type: "string" } },
+          exact: { type: "object" },
+          filters: { type: "array", items: { type: "object" } },
+          cursor: { type: "string" },
+          limit: { type: "number" },
+          hydrate_links: { type: "boolean" },
+          ...nativeMcpConfigSchemaProperties(),
+        },
+      },
+    },
+    {
+      name: "mgrep",
+      description: "Multi-source grep router. Use source=code/files for semantic_grep, source=memory/data for memory_grep, source=web/docs/api for observe_web, or source=all for code plus memory.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          ...grepInputSchemaProperties(),
+          source: {
+            type: "string",
+            enum: ["code", "files", "memory", "data", "web", "docs", "api", "all"],
+          },
+          backend: {
+            type: "string",
+            enum: ["local", "native", "remote", "code_graph", "compute_code"],
+          },
+          tenant: { type: "string" },
+          tenant_slug: { type: "string" },
+          tags: { type: "array", items: { type: "string" } },
+          hydrate_links: { type: "boolean" },
+          urls: { type: "array", items: { type: "string" } },
+          url: { type: "string" },
+          docs: { type: "array", items: { type: "string" } },
+          api: { type: "object" },
+          ...nativeMcpConfigSchemaProperties(),
         },
       },
     },
@@ -689,6 +798,22 @@ async function handleToolCall(message) {
     return textResult(message.id, await queryIndexContext(args));
   }
 
+  if (name === "grep") {
+    return textResult(message.id, await queryGrep(args));
+  }
+
+  if (name === "semantic_grep") {
+    return textResult(message.id, await querySemanticGrepTool(args));
+  }
+
+  if (name === "memory_grep") {
+    return textResult(message.id, await queryMemoryGrep(args));
+  }
+
+  if (name === "mgrep") {
+    return textResult(message.id, await queryMgrep(args));
+  }
+
   if (name === "compound_engineering") {
     return textResult(message.id, await queryCompoundEngineering(args));
   }
@@ -751,6 +876,99 @@ function queryNativeProductTool(name, args) {
   });
 }
 
+function querySemanticGrepTool(args) {
+  const backend = normalizeRoute(args.backend);
+  if (GREP_NATIVE_BACKENDS.has(backend)) {
+    return callNativeMcpTool({
+      input: {
+        ...args,
+        arguments: grepNativeArguments(args, {
+          defaultOperation: "search",
+        }),
+      },
+      nativeTool: "compute_code",
+      productTool: "semantic_grep",
+      requestId: "semantic-grep",
+    });
+  }
+  return querySemanticGrep(args);
+}
+
+function queryMemoryGrep(args, { productTool = "memory_grep" } = {}) {
+  const query = grepQuery(args);
+  const exactRoute = Boolean(args.id || args.record_id || args.record_ids || args.ids || args.exact || args.filters || args.collection || args.label);
+  if (!query && !exactRoute) {
+    return {
+      schema_version: 1,
+      ok: false,
+      status: "degraded",
+      product_tool: productTool,
+      reason: "empty_query",
+      message: `${productTool} requires a query, pattern, record id, collection, exact filter, or Data API filter.`,
+    };
+  }
+  const nativeTool = exactRoute ? "query_data" : "retrieve_memory";
+  const nativeArgs = grepNativeArguments(args, {
+    query,
+    defaultLimit: 20,
+  });
+  if (nativeTool === "query_data" && !nativeArgs.collection) {
+    nativeArgs.collection = "memory_docs";
+  }
+  return callNativeMcpTool({
+    input: {
+      ...args,
+      arguments: nativeArgs,
+    },
+    nativeTool,
+    productTool,
+    requestId: productTool.replaceAll("_", "-"),
+  });
+}
+
+async function queryMgrep(args) {
+  const source = normalizeRoute(args.source ?? args.mode ?? "code");
+  if (MEMORY_GREP_SOURCES.has(source)) {
+    return queryMemoryGrep(args, { productTool: "mgrep" });
+  }
+  if (WEB_GREP_SOURCES.has(source)) {
+    return callNativeMcpTool({
+      input: {
+        ...args,
+        arguments: grepNativeArguments(args, {
+          query: grepQuery(args),
+          defaultLimit: 10,
+        }),
+      },
+      nativeTool: "observe_web",
+      productTool: "mgrep",
+      requestId: "mgrep-web",
+    });
+  }
+  if (source === "all") {
+    const code = await querySemanticGrep(args, { productTool: "mgrep" });
+    const memory = await queryMemoryGrep(args, { productTool: "mgrep" });
+    const degradedSources = [
+      code.ok ? null : { source: "code", reason: code.reason },
+      memory.ok ? null : { source: "memory", reason: memory.reason },
+    ].filter(Boolean);
+    return {
+      schema_version: 1,
+      ok: Boolean(code.ok || memory.ok),
+      status: degradedSources.length ? "degraded" : "ok",
+      product_tool: "mgrep",
+      mode: "multi-source",
+      query: grepQuery(args),
+      sources: {
+        code,
+        memory,
+      },
+      degraded_sources: degradedSources,
+    };
+  }
+  return querySemanticGrep(args, { productTool: "mgrep" });
+}
+
 function queryReconstruct(args) {
   if (isBinaryFromSourceRoute(args)) {
     return reconstructBinaryFromSource(args);
@@ -784,6 +1002,39 @@ function queryComputeCode(args) {
   });
 }
 
+function grepInputSchemaProperties() {
+  return {
+    query: { type: "string" },
+    pattern: { type: "string" },
+    text: { type: "string" },
+    q: { type: "string" },
+    cwd: { type: "string" },
+    root: { type: "string" },
+    local_path: { type: "string" },
+    path: { type: "string" },
+    paths: { type: "array", items: { type: "string" } },
+    file: { type: "string" },
+    files: { type: "array", items: { type: "string" } },
+    include: { type: "array", items: { type: "string" } },
+    includes: { type: "array", items: { type: "string" } },
+    exclude: { type: "array", items: { type: "string" } },
+    excludes: { type: "array", items: { type: "string" } },
+    glob: { type: "string" },
+    globs: { type: "array", items: { type: "string" } },
+    extension: { type: "string" },
+    extensions: { type: "array", items: { type: "string" } },
+    regex: { type: "boolean" },
+    case_sensitive: { type: "boolean" },
+    context_lines: { type: "number" },
+    limit: { type: "number" },
+    max_results: { type: "number" },
+    max_files: { type: "number" },
+    max_file_bytes: { type: "number" },
+    max_total_bytes: { type: "number" },
+    ignore_dirs: { type: "array", items: { type: "string" } },
+  };
+}
+
 function reconstructNativeTool(args) {
   const route = routeSelector(args);
   if (RECONSTRUCT_COMPOSE_MODES.has(route)) return "reverse_engineer_compose";
@@ -799,6 +1050,20 @@ function reconstructNativeTool(args) {
     return "datawave_ingest";
   }
   return "";
+}
+
+function grepNativeArguments(args, { query = grepQuery(args), defaultOperation, defaultLimit } = {}) {
+  const input = compoundArguments(args);
+  delete input.backend;
+  delete input.source;
+  if (query && !input.query) input.query = query;
+  if (defaultOperation && !input.operation) input.operation = defaultOperation;
+  if (defaultLimit && !input.limit) input.limit = defaultLimit;
+  return input;
+}
+
+function grepQuery(args) {
+  return String(args.query ?? args.pattern ?? args.text ?? args.q ?? "").trim();
 }
 
 function isBinaryFromSourceRoute(args) {

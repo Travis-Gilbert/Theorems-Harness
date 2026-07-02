@@ -41,6 +41,20 @@ test("index prompt activates Index Context skill guidance", async () => {
   assert.match(markdown, /index_context/);
 });
 
+test("grep prompt activates Grep Tools guidance", async () => {
+  const { packet, markdown } = await compileContext({
+    prompt: "Use semantic grep to find the code paths for this behavior",
+    cwd: process.cwd(),
+    changed_files: [],
+  });
+
+  assert.equal(packet.status, "ok");
+  assert.equal(packet.active_capabilities.some((item) => item.id === "grep-tools"), true);
+  assert.equal(packet.receipt_events.some((item) => item.type === "CapabilityActivated"), true);
+  assert.match(markdown, /Grep Tools/);
+  assert.match(markdown, /semantic_grep/);
+});
+
 test("reverse engineering prompt activates cached Reverse Engineer guidance", async () => {
   const { packet, markdown } = await compileContext({
     prompt: "Reverse engineer this GitHub repo into a rebuild plan and parity checklist",
