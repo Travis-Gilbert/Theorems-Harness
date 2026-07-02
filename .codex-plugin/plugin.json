@@ -1,6 +1,6 @@
 {
   "name": "theorems-harness-product",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Agent delivery surface for Theorems Harness capabilities, hooks, and MCP facade.",
   "author": {
     "name": "Travis Gilbert"
