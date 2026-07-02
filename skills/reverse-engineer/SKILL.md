@@ -1,6 +1,7 @@
 ---
 name: reverse-engineer
-description: Use when the user asks to reverse engineer a repository, URL, website, codebase, product surface, feature, API, workflow, or binary artifact into a grounded map, behavior spec, parity checks, or rebuild plan.
+description: This skill should be used when the user asks to "reverse engineer" a repository, URL, website, codebase, product surface, feature, API, workflow, or binary artifact, or asks to "reconstruct" behavior into a grounded map, behavior spec, parity checks, or rebuild plan.
+version: 0.1.2
 ---
 
 # Reverse Engineer

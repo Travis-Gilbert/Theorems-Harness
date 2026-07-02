@@ -1,6 +1,7 @@
 ---
 name: rust-engineering
-description: Use when writing, reviewing, debugging, explaining, encoding, or improving Rust code, Cargo workspaces, Rust MCP/server crates, Rust validators, PyO3/FFI bridges, async Rust services, parsers/macros, systems code, Ensemble pack selection, affordance charters, or Rust skill-pack corpus work.
+description: This skill should be used when the user asks to "write Rust", "debug Rust", "review Rust", "fix Cargo", "work on a Rust MCP server", "improve a Rust crate", or needs help with Cargo workspaces, Rust validators, PyO3/FFI bridges, async Rust services, parsers/macros, systems code, Ensemble pack selection, affordance charters, or Rust skill-pack corpus work.
+version: 0.1.2
 ---
 
 # Rust Engineering
