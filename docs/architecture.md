@@ -49,18 +49,41 @@ live RustyRed connection. Remote adapters should implement the same verbs and
 return explicit degraded reasons instead of silent nulls.
 
 Product MCP tools can also be thin proxies over native Theorem/RustyRed MCP
-tools when the affordance is already substrate-owned. `index_context` is the
-query-start path: it calls native GraphQL memory plus index-spine fields, fuses
-candidate memories, context views, query receipts, and map artifacts outside the
-model context with learned rerankers before falling back to weighted RRF, and
-exposes cache metadata. `index_spine` is the lower-level
-inspection path: the product tool keeps the host-facing name stable, forwards to
-native `rustyred_thg_index_spine`, and reports `remote_unavailable` or
+tools when the affordance is already substrate-owned. The Data API tools are the
+records membrane from Theorem PR-103: `query_data` queries records with
+deterministic filters, cursoring, provenance, rank signals, and link hydration;
+`retrieve_memory` narrows memory through the same records API; `turn_start`
+assembles the compact work packet; `evidence_bundle` hydrates cited records; and
+`observe_web` turns URL/API/docs evidence into Data API records. `index_context`
+is the query-start path: it calls native GraphQL memory plus index-spine fields,
+fuses candidate memories, context views, query receipts, and map artifacts
+outside the model context with learned rerankers before falling back to weighted
+RRF, and exposes cache metadata. `index_spine` is the lower-level inspection
+path: the product tool keeps the host-facing name stable, forwards to native
+`rustyred_thg_index_spine`, and reports `remote_unavailable` or
 `contract_missing` when the remote MCP endpoint cannot satisfy the contract.
 The ranking order is listwise learned reranker, cross-encoder learned reranker,
 then weighted RRF fallback. Process-memory TTL caching uses a stable key that
 includes the reranker identity; the same key can back a Valkey cache-aside store
 when the product MCP runs as a long-lived service.
+
+The GraphQL and reconstruction surfaces follow the same membrane rule. This repo
+owns the host-visible product names (`graphql_query`, `graphql_mutate`,
+`graphql_introspect`, `reconstruct`, `compute_code`, `understand_code`,
+`impact`, `oracle`, and diagnostic `native_mcp_call`), while Theorem owns the
+Rust handlers and graph writes.
+`reconstruct` is the compound reconstruction front door: source-repo mode routes
+to native `reverse_engineer_compose`, binary mode routes to native
+`reconstruct_binary`, Datawave mode routes to native `datawave_ingest`, and
+`binary_from_source` is the product-local bridge for the source-to-binary oracle:
+copy source to a temporary sandbox, run confirmed build commands, hash the
+selected artifact, run Ghidra headless when configured, and optionally ingest the
+Ghidra JSON facts through native Datawave.
+`compute_code` is the compound code front door: search/context/explain-style
+operations route to native `compute_code`, while ingest/reindex operations route
+to native `code_ingest`. `understand_code`, `impact`, and `oracle` keep their
+own flat names because agents look for those verbs directly, but they still
+route to native Theorem tools.
 
 `THEOREMS_HARNESS_REMOTE_READY=1` is the product-side readiness gate for remote
 abilities without a local fallback. Leave it unset when the MCP registration,

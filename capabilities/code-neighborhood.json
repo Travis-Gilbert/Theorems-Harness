@@ -6,11 +6,12 @@
   "must_be_visible_to_model": false,
   "requires_remote": true,
   "backing": {
-    "theorem_verbs": ["context_pack", "session_reingest", "coordination_context"],
+    "product_verbs": ["compute_code", "understand_code", "impact", "oracle"],
+    "theorem_verbs": ["compute_code", "code_ingest", "understand_code", "impact", "oracle", "context_pack", "session_reingest", "coordination_context"],
     "manifest_path": ".harness/code-kg-manifest.json"
   },
   "triggers": {
-    "prompt_regex": "\\b(code context|impact|drift|process flow|what touches|why does this code|review context|change blast radius|compile context)\\b",
+    "prompt_regex": "\\b(code context|understand code|impact|oracle|validator|drift|process flow|what touches|why does this code|review context|change blast radius|compile context)\\b",
     "file_extensions": [".rs", ".ts", ".tsx", ".js", ".mjs", ".py", ".swift"],
     "tool_name_regex": "apply_patch|exec_command|Edit|Write|Bash"
   },

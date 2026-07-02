@@ -91,7 +91,21 @@ The MCP facade includes:
 - `remote_doctor`
 - `index_context`
 - `index_spine`
+- `query_data`
+- `retrieve_memory`
+- `turn_start`
+- `evidence_bundle`
 - `compound_engineering`
+- `graphql_query`
+- `graphql_mutate`
+- `graphql_introspect`
+- `reconstruct`
+- `compute_code`
+- `understand_code`
+- `impact`
+- `oracle`
+- `observe_web`
+- `native_mcp_call`
 - `write_receipt`
 
 `scorecards/capability-scorecards.json` is the measurement surface for trigger
@@ -121,8 +135,22 @@ remote MCP endpoint and returns explicit `remote_unavailable` or
 `contract_missing` states instead of silently pretending the adaptive index
 cannot answer.
 
+The Data API tools are the records membrane from Theorem PR-103. `query_data`
+queries typed records with deterministic filters, cursoring, provenance, rank
+signals, and link hydration. `retrieve_memory` is memory retrieval over that
+same membrane. `turn_start` asks the substrate for the compact work packet at
+the start of a turn, `evidence_bundle` hydrates cited records, and `observe_web`
+turns URL/API/docs evidence into records that later queries can join.
+
 The `reverse-engineer` skill is the agent-facing wrapper for evidence-first
 reconstruction work. It starts from a repo, path, URL, feature, API, workflow, or
 artifact; produces grounded maps, behavior specs, parity checklists, and rebuild
 plans; and routes deeper code/compiler/binary reconstruction to Theorem-owned
-substrate tooling when available.
+substrate tooling when available. Its first-class Theorem substrate entrypoint is
+`reconstruct`: source-repo mode should produce a `ReconstructionSpec` with code
+counts and Datawave projection receipts, while binary/Ghidra-style
+reconstruction is selected only for binary artifacts or explicit
+`binary_from_source` requests. `binary_from_source` copies a local source tree to
+a temporary sandbox, runs confirmed build commands, hashes the selected artifact,
+optionally runs Ghidra `analyzeHeadless` with the bundled exporter, and can proxy
+the exported Ghidra facts into native `datawave_ingest`.

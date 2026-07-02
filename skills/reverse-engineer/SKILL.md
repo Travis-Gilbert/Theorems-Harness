@@ -12,6 +12,25 @@ Reverse engineering means reconstructing observable structure and behavior from
 evidence. Do not infer from vibe, screenshots alone, or training memory when
 the source can be read, cloned, crawled, run, or queried.
 
+When the Theorems Harness product MCP exposes `reconstruct`, use it as the front
+door for repo/path/source reverse-engineering. In source mode it asks the
+Theorem substrate to ensure source evidence, compile code IR, project Datawave
+facts, summarize binary artifacts when present, and return one
+`ReconstructionSpec`. If the tool, or a documented GraphQL equivalent, is
+unavailable, report `compose_surface_missing` or
+`reconstruction_backend_missing` before falling back to manual repo inspection.
+
+Use `reconstruct` binary mode for binary artifacts and Ghidra-style analysis.
+Do not compile a source repository into a binary just to decompile it; source
+evidence is richer. For a source-only repo, a null or absent binary summary is
+expected, while Datawave projection should still be present through compose.
+When the user explicitly wants a build-to-binary oracle, use
+`reconstruct(mode: "binary_from_source")` with a local source path, an explicit
+artifact path or glob, and `confirmed: true`. That mode copies source to a
+temporary sandbox, runs the confirmed build command, hashes the artifact, runs
+Ghidra `analyzeHeadless` when configured, and can ingest the exported Ghidra
+facts into Datawave.
+
 ## Default Workflow
 
 1. Classify the target:
@@ -43,6 +62,61 @@ the source can be read, cloned, crawled, run, or queried.
    - existing tests, typecheck, lint, build, smoke route, screenshot comparison,
      API fixture, golden output, or replayed user flow
    - if no oracle exists, name the missing oracle and propose the smallest one
+
+## Theorem Compose Mode
+
+For repo/path/source targets, prefer:
+
+```json
+{
+  "tool": "reconstruct",
+  "arguments": {
+    "mode": "compose",
+    "source": {
+      "github_url": "https://github.com/example/project.git"
+    },
+    "datawave_fact_limit": 1000000
+  }
+}
+```
+
+Expected output signals:
+
+- `provenance.ingest_path` states whether evidence was newly ingested or loaded.
+- `code_files_count` and `code_symbols_count` prove the code graph populated.
+- `provenance.code_to_datawave` proves Datawave projection fired.
+- `binary` is present only when binary artifacts are in scope.
+- `drift` names mismatches against prior specs, not vague uncertainty.
+
+## Binary From Source Mode
+
+Use this only when binary evidence is the desired oracle, not as the default way
+to understand source code:
+
+```json
+{
+  "tool": "reconstruct",
+  "arguments": {
+    "mode": "binary_from_source",
+    "local_path": "/path/to/source",
+    "confirmed": true,
+    "build_command": "cargo build --release",
+    "artifact_path": "target/release/app",
+    "ingest_datawave": true
+  }
+}
+```
+
+Expected output signals:
+
+- `build.commands[].exit_code` proves the chosen build command ran.
+- `artifact.sha256` and `artifact.byte_len` prove the exact binary artifact.
+- `ghidra.status` is `ok`, `skipped`, or a degraded reason such as
+  `ghidra_unavailable`.
+- `ghidra.facts_summary` counts exported functions, imports, call edges, P-code,
+  and decompiler facts when Ghidra ran.
+- `datawave.records_count` and native ingest result prove graph projection when
+  `ingest_datawave` is requested.
 
 ## Repo/Codebase Mode
 

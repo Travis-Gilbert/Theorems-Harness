@@ -1,0 +1,65 @@
+{
+  "id": "data-api",
+  "title": "RustyRed Data API",
+  "delivery": "explicit",
+  "priority": 90,
+  "must_be_visible_to_model": true,
+  "requires_remote": true,
+  "backing": {
+    "product_verbs": [
+      "query_data",
+      "retrieve_memory",
+      "turn_start",
+      "evidence_bundle",
+      "observe_web"
+    ],
+    "theorem_verbs": [
+      "query_data",
+      "retrieve_memory",
+      "turn_start",
+      "evidence_bundle",
+      "observe_web",
+      "graphql_query.dataRecords",
+      "graphql_query.dataRecord"
+    ],
+    "runtime_modules": [
+      "rustyred-thg-core::data_api",
+      "rustyred-thg-mcp::graphql::data"
+    ]
+  },
+  "triggers": {
+    "prompt_regex": "\\b(data api|query data|records api|record envelope|memory grep|exact memory|retrieve memory|evidence bundle|turn start|observed web|web evidence|rustyweb|datawave records)\\b",
+    "tool_name_regex": "apply_patch|exec_command|Edit|Write|Bash",
+    "tool_input_regex": "query_data|retrieve_memory|turn_start|evidence_bundle|observe_web|dataRecords|dataRecord|memory_docs"
+  },
+  "context": {
+    "directive": "Use query_data as the root records membrane. Use retrieve_memory for memory over that membrane, evidence_bundle for cited records, turn_start for working context, and observe_web for URL/API/docs evidence that should become Data API records.",
+    "workflow": [
+      "Narrow records deterministically by tenant, repo, path, room, tag, source, status, validity, or exact ids before ranking.",
+      "Return the Data API envelope with records, fields, score, edges, provenance, rank_signals, cursor, trace, and degraded states.",
+      "Prefer retrieve_memory when the target is memory recall, and query_data when the user has exact filters or ids.",
+      "Use evidence_bundle when a response needs cited record packets instead of prose-only conclusions.",
+      "Use observe_web to ingest URL/API/docs evidence before web-derived facts are treated as graph evidence."
+    ],
+    "validation_defaults": [
+      "MCP tools/list includes query_data, retrieve_memory, turn_start, evidence_bundle, and observe_web.",
+      "query_data degrades with remote_unavailable when native MCP is not configured.",
+      "query_data proxies to native query_data with filters intact when native MCP is configured."
+    ],
+    "degraded_reasons": [
+      "remote_unavailable",
+      "contract_missing",
+      "tenant_unavailable",
+      "broad_scan_required"
+    ]
+  },
+  "receipts": {
+    "events": [
+      "DataQueryRun",
+      "MemoryRetrieved",
+      "EvidenceBundlePrepared",
+      "WebEvidenceObserved",
+      "DataApiDegraded"
+    ]
+  }
+}

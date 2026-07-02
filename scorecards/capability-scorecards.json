@@ -42,27 +42,39 @@
         "tests/diagnostics/adapter-contract.test.mjs"
       ]
     },
-    "reverse-engineer": {
-      "status": "measured-local",
+    "data-api": {
+      "status": "measured-product-proxy",
       "current": {
         "visibility_tests": 3,
+        "degradation_reason": "remote_unavailable"
+      },
+      "evidence": [
+        "tests/agent-visibility/mcp-server.test.mjs"
+      ]
+    },
+    "reverse-engineer": {
+      "status": "measured-product-proxy",
+      "current": {
+        "visibility_tests": 6,
         "degradation_rate": 0
       },
       "evidence": [
         "tests/agent-visibility/capability-context.test.mjs",
         "tests/agent-visibility/capability-coverage.test.mjs",
-        "tests/diagnostics/adapter-contract.test.mjs"
+        "tests/diagnostics/adapter-contract.test.mjs",
+        "tests/agent-visibility/mcp-server.test.mjs"
       ]
     },
     "code-neighborhood": {
-      "status": "degraded",
+      "status": "measured-product-proxy",
       "current": {
-        "visibility_tests": 1,
+        "visibility_tests": 3,
         "degradation_reason": "no_manifest"
       },
       "evidence": [
         "tests/agent-visibility/capability-context.test.mjs",
-        "tests/diagnostics/doctor.test.mjs"
+        "tests/diagnostics/doctor.test.mjs",
+        "tests/agent-visibility/mcp-server.test.mjs"
       ]
     },
     "compound-engineering": {

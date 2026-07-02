@@ -10,6 +10,7 @@
   ],
   "capabilities": [
     "./rust-engineering.json",
+    "./data-api.json",
     "./index-context.json",
     "./reverse-engineer.json",
     "./code-neighborhood.json",
