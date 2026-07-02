@@ -7,7 +7,7 @@
   "requires_remote": true,
   "local_fallback": "skills/index/SKILL.md",
   "backing": {
-    "product_verbs": ["index_context", "index_spine"],
+    "product_verbs": ["index_context", "index_spine", "query_data", "retrieve_memory", "turn_start"],
     "theorem_verbs": [
       "graphql_query.memory",
       "graphql_query.indexSpineOverview",
@@ -19,9 +19,9 @@
     "runtime_modules": ["rustyred-rerank", "ValkeyCache"]
   },
   "triggers": {
-    "prompt_regex": "\\b(index context|index-aware|adaptive index|prior memory|prior decision|what did we decide|why did recall|context packet|query receipt|context view|map artifact|semantic memory|relevant memory|retrieve context)\\b",
+    "prompt_regex": "\\b(index context|index query|query index|index-aware|adaptive index|prior memory|prior decision|what did we decide|why did recall|context packet|query receipt|context view|map artifact|semantic memory|relevant memory|retrieve context|retrieve memory|query data)\\b",
     "tool_name_regex": "apply_patch|exec_command|Edit|Write|Bash",
-    "tool_input_regex": "index_context|index_spine|graphql_query|recall|memory|ContextView|QueryReceipt"
+    "tool_input_regex": "index_context|index_spine|query_data|retrieve_memory|turn_start|graphql_query|recall|memory|ContextView|QueryReceipt"
   },
   "context": {
     "directive": "Before broad recall or manual fusion, call index_context to assemble a compact GraphQL-backed context packet. Let the product layer use the learned reranker and cache metadata; hydrate only the records the packet justifies.",

@@ -10,8 +10,120 @@ import { runDoctor } from "../product/doctor.mjs";
 import { queryIndexContext } from "../product/index-context.mjs";
 import { queryIndexSpine } from "../product/index-spine.mjs";
 import { loadCapabilityManifest } from "../product/load-manifest.mjs";
+import { callNativeMcpTool, nativeMcpConfigSchemaProperties } from "../product/native-mcp.mjs";
 import { runRemoteDoctor } from "../product/remote-doctor.mjs";
 import { loadCapabilityScorecards } from "../product/scorecards.mjs";
+import { reconstructBinaryFromSource } from "../product/binary-from-source.mjs";
+
+const NATIVE_TOOL_ALIASES = Object.freeze({
+  code_ingest: "code_ingest",
+  datawave_ingest: "datawave_ingest",
+  graphql_introspect: "graphql_introspect",
+  graphql_mutate: "graphql_mutate",
+  graphql_query: "graphql_query",
+  reconstruct_binary: "reconstruct_binary",
+  reverse_engineer_compose: "reverse_engineer_compose",
+});
+const DATA_API_PRODUCT_TOOLS = new Set([
+  "query_data",
+  "retrieve_memory",
+  "turn_start",
+  "evidence_bundle",
+  "understand_code",
+  "impact",
+  "oracle",
+  "observe_web",
+]);
+const COMPOUND_CONFIG_KEYS = new Set([
+  "args",
+  "arguments",
+  "kind",
+  "mcp_path",
+  "mcpPath",
+  "mcp_url",
+  "mcpUrl",
+  "mode",
+  "native_tool",
+  "nativeTool",
+  "remote_token",
+  "remoteToken",
+  "remote_url",
+  "remoteUrl",
+  "surface",
+  "timeout_ms",
+  "timeoutMs",
+  "token",
+  "tool",
+]);
+const RECONSTRUCT_COMPOSE_MODES = new Set([
+  "compose",
+  "repo",
+  "source",
+  "source_repo",
+  "source-repo",
+  "reverse_engineer_compose",
+  "reverse-engineer-compose",
+]);
+const RECONSTRUCT_BINARY_MODES = new Set([
+  "binary",
+  "binary_from_source",
+  "binary-from-source",
+  "ghidra",
+  "reconstruct_binary",
+  "reconstruct-binary",
+  "load",
+  "analyze",
+  "lift",
+  "plan",
+  "instruction",
+  "instruction_get",
+  "instruction-get",
+  "validate",
+]);
+const RECONSTRUCT_DATAWAVE_MODES = new Set([
+  "datawave",
+  "datawave_ingest",
+  "datawave-ingest",
+  "describe",
+  "record",
+  "ingest_record",
+  "ingest-record",
+  "batch",
+  "ingest_batch",
+  "ingest-batch",
+  "lookup",
+  "intersect",
+]);
+const CODE_INGEST_MODES = new Set([
+  "code_ingest",
+  "code-ingest",
+  "ingest",
+  "reindex",
+  "session_reingest",
+  "session-reingest",
+]);
+const SELECTION_ONLY_OPERATIONS = new Set([
+  "binary",
+  "binary_from_source",
+  "binary-from-source",
+  "code_ingest",
+  "code-ingest",
+  "compose",
+  "compute_code",
+  "compute-code",
+  "datawave",
+  "datawave_ingest",
+  "datawave-ingest",
+  "ghidra",
+  "reconstruct_binary",
+  "reconstruct-binary",
+  "repo",
+  "reverse_engineer_compose",
+  "reverse-engineer-compose",
+  "source",
+  "source_repo",
+  "source-repo",
+]);
 
 export async function handleRpcMessage(message) {
   if (message.method === "initialize") {
@@ -175,6 +287,94 @@ export function toolsList() {
       },
     },
     {
+      name: "query_data",
+      description: "Query RustyRed Data API records by id, collection, label, exact filters, text filters, cursor, and optional link hydration.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          tenant: { type: "string" },
+          tenant_slug: { type: "string" },
+          id: { type: "string" },
+          collection: { type: "string" },
+          label: { type: "string" },
+          query: { type: "string" },
+          exact: { type: "object" },
+          filters: { type: "array", items: { type: "object" } },
+          sort: { type: "array", items: { type: "object" } },
+          cursor: { type: "string" },
+          limit: { type: "number" },
+          hydrate_links: { type: "boolean" },
+          broad_scan: { type: "boolean" },
+          ...nativeMcpConfigSchemaProperties(),
+        },
+      },
+    },
+    {
+      name: "retrieve_memory",
+      description: "Retrieve memory through query_data with deterministic tenant, repo, path, room, tag, source, status, and validity narrowing before ranking.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          tenant: { type: "string" },
+          tenant_slug: { type: "string" },
+          query: { type: "string" },
+          project: { type: "string" },
+          repo: { type: "string" },
+          path: { type: "string" },
+          room: { type: "string" },
+          room_id: { type: "string" },
+          tags: { type: "array", items: { type: "string" } },
+          source: { type: "string" },
+          status: { type: "string" },
+          validity: { type: "string" },
+          cursor: { type: "string" },
+          limit: { type: "number" },
+          hydrate_links: { type: "boolean" },
+          ...nativeMcpConfigSchemaProperties(),
+        },
+      },
+    },
+    {
+      name: "turn_start",
+      description: "Assemble a turn-start packet from Data API records, memory, coordination, index, code, and task context.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          tenant: { type: "string" },
+          tenant_slug: { type: "string" },
+          prompt: { type: "string" },
+          task: { type: "string" },
+          cwd: { type: "string" },
+          repo: { type: "string" },
+          actor: { type: "string" },
+          room_id: { type: "string" },
+          limit: { type: "number" },
+          include_memory: { type: "boolean" },
+          include_code: { type: "boolean" },
+          include_coordination: { type: "boolean" },
+          ...nativeMcpConfigSchemaProperties(),
+        },
+      },
+    },
+    {
+      name: "evidence_bundle",
+      description: "Bundle Data API records, links, provenance, and snippets for cited evidence ids or a bounded query.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          tenant: { type: "string" },
+          tenant_slug: { type: "string" },
+          record_ids: { type: "array", items: { type: "string" } },
+          ids: { type: "array", items: { type: "string" } },
+          query: { type: "string" },
+          limit: { type: "number" },
+          include_links: { type: "boolean" },
+          hydrate_links: { type: "boolean" },
+          ...nativeMcpConfigSchemaProperties(),
+        },
+      },
+    },
+    {
       name: "compound_engineering",
       description: "Read the Compound Engineering summary from the harness: captures, gate records, and reviewable action candidates for recurring outcomes.",
       inputSchema: {
@@ -190,6 +390,243 @@ export function toolsList() {
           http_path: { type: "string" },
           token: { type: "string" },
           timeout_ms: { type: "number" },
+        },
+      },
+    },
+    {
+      name: "graphql_query",
+      description: "Proxy a native Theorem GraphQL read query through the configured MCP endpoint.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          query: { type: "string" },
+          variables: { type: "object" },
+          operation_name: { type: "string" },
+          operationName: { type: "string" },
+          ...nativeMcpConfigSchemaProperties(),
+        },
+        required: ["query"],
+      },
+    },
+    {
+      name: "graphql_mutate",
+      description: "Proxy a native Theorem GraphQL mutation through the configured MCP endpoint.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          query: { type: "string" },
+          variables: { type: "object" },
+          operation_name: { type: "string" },
+          operationName: { type: "string" },
+          ...nativeMcpConfigSchemaProperties(),
+        },
+        required: ["query"],
+      },
+    },
+    {
+      name: "graphql_introspect",
+      description: "Proxy native Theorem GraphQL schema introspection through the configured MCP endpoint.",
+      inputSchema: {
+        type: "object",
+        properties: nativeMcpConfigSchemaProperties(),
+      },
+    },
+    {
+      name: "reconstruct",
+      description: "Compound reconstruction surface. Routes source compose, binary/Ghidra reconstruction, and Datawave ingest to the native Theorem substrate.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          mode: {
+            type: "string",
+            enum: ["compose", "binary", "binary_from_source", "datawave"],
+          },
+          kind: { type: "string" },
+          operation: { type: "string" },
+          tenant: { type: "string" },
+          tenant_slug: { type: "string" },
+          tenant_id: { type: "string" },
+          source: { type: "object" },
+          source_ref: { type: "object" },
+          github_url: { type: "string" },
+          repo_url: { type: "string" },
+          repo_id: { type: "string" },
+          repo: { type: "string" },
+          local_path: { type: "string" },
+          repo_path: { type: "string" },
+          binary_path: { type: "string" },
+          web_url: { type: "string" },
+          sha: { type: "string" },
+          target: { type: "object" },
+          build_command: { type: "string" },
+          build_commands: { type: "array", items: { type: ["string", "object", "array"] } },
+          build_timeout_ms: { type: "integer" },
+          artifact_glob: { type: "string" },
+          binary_glob: { type: "string" },
+          confirmed: { type: "boolean" },
+          build_confirmed: { type: "boolean" },
+          keep_sandbox: { type: "boolean" },
+          ghidra_enabled: { type: "boolean" },
+          run_ghidra: { type: "boolean" },
+          ghidra_headless_path: { type: "string" },
+          ghidra_script_path: { type: "string" },
+          ghidra_timeout_ms: { type: "integer" },
+          ghidra_timeout_seconds: { type: "integer" },
+          max_ghidra_functions: { type: "integer" },
+          max_pcode_ops: { type: "integer" },
+          ingest_datawave: { type: "boolean" },
+          max_datawave_records: { type: "integer" },
+          repo_label: { type: "string" },
+          max_symbols: { type: "integer" },
+          max_features: { type: "integer" },
+          pattern_limit: { type: "integer" },
+          path_prefix: { type: "string" },
+          datawave_fact_limit: { type: "integer" },
+          max_total_bytes: { type: "integer" },
+          artifact_id: { type: "string" },
+          artifact_path: { type: "string" },
+          bytes_hex: { type: "string" },
+          record: { type: "object" },
+          records: { type: "array", items: { type: "object" } },
+          helper: { type: "object" },
+          field: { type: "string" },
+          value: { type: "string" },
+          ...nativeMcpConfigSchemaProperties(),
+        },
+      },
+    },
+    {
+      name: "compute_code",
+      description: "Compound code surface. Routes code search/context/explain operations to native compute_code and ingest/reindex operations to native code_ingest.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          operation: {
+            type: "string",
+            enum: [
+              "search",
+              "context",
+              "recognize",
+              "explore",
+              "explain",
+              "list_repos",
+              "kg_status",
+              "context_pack",
+              "record_use_receipt",
+              "ingest_status",
+              "ingest",
+              "reindex",
+              "session_reingest",
+            ],
+          },
+          mode: { type: "string" },
+          query: { type: "string" },
+          repo: { type: "string" },
+          repo_id: { type: "string" },
+          repo_url: { type: "string" },
+          repo_path: { type: "string" },
+          local_path: { type: "string" },
+          path: { type: "string" },
+          symbol: { type: "string" },
+          language: { type: "string" },
+          limit: { type: "number" },
+          max_results: { type: "number" },
+          max_total_bytes: { type: "number" },
+          confirmed: { type: "boolean" },
+          ...nativeMcpConfigSchemaProperties(),
+        },
+      },
+    },
+    {
+      name: "understand_code",
+      description: "Compose code search/context/explain plus Data API evidence into a feature, component, ownership, call graph, and risk packet.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          tenant: { type: "string" },
+          tenant_slug: { type: "string" },
+          query: { type: "string" },
+          repo: { type: "string" },
+          repo_id: { type: "string" },
+          repo_url: { type: "string" },
+          repo_path: { type: "string" },
+          local_path: { type: "string" },
+          path: { type: "string" },
+          symbol: { type: "string" },
+          language: { type: "string" },
+          limit: { type: "number" },
+          ...nativeMcpConfigSchemaProperties(),
+        },
+      },
+    },
+    {
+      name: "impact",
+      description: "Analyze blast radius from a Data API record, graph node, code symbol, file path, task, or feature seed.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          tenant: { type: "string" },
+          tenant_slug: { type: "string" },
+          seed: { type: "string" },
+          node_id: { type: "string" },
+          record_id: { type: "string" },
+          symbol: { type: "string" },
+          path: { type: "string" },
+          query: { type: "string" },
+          max_depth: { type: "number" },
+          limit: { type: "number" },
+          ...nativeMcpConfigSchemaProperties(),
+        },
+      },
+    },
+    {
+      name: "oracle",
+      description: "Build or inspect validators, obligations, and evidence-backed checks for a claim, feature, reconstruction, or code change.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          tenant: { type: "string" },
+          tenant_slug: { type: "string" },
+          claim: { type: "string" },
+          target: { type: "object" },
+          validators: { type: "array", items: { type: "object" } },
+          evidence_ids: { type: "array", items: { type: "string" } },
+          mode: { type: "string" },
+          limit: { type: "number" },
+          ...nativeMcpConfigSchemaProperties(),
+        },
+      },
+    },
+    {
+      name: "observe_web",
+      description: "Ingest or query URL, API, docs, and browser evidence into RustyWeb/Datawave records queryable through query_data.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          tenant: { type: "string" },
+          tenant_slug: { type: "string" },
+          url: { type: "string" },
+          urls: { type: "array", items: { type: "string" } },
+          api: { type: "object" },
+          docs: { type: "array", items: { type: "string" } },
+          query: { type: "string" },
+          ingest: { type: "boolean" },
+          limit: { type: "number" },
+          ...nativeMcpConfigSchemaProperties(),
+        },
+      },
+    },
+    {
+      name: "native_mcp_call",
+      description: "Generic diagnostic proxy for a native Theorem/RustyRed MCP tool. Prefer named product tools when one exists.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          tool: { type: "string" },
+          native_tool: { type: "string" },
+          arguments: { type: "object" },
+          args: { type: "object" },
+          ...nativeMcpConfigSchemaProperties(),
         },
       },
     },
@@ -256,6 +693,41 @@ async function handleToolCall(message) {
     return textResult(message.id, await queryCompoundEngineering(args));
   }
 
+  if (name === "reconstruct") {
+    return textResult(message.id, await queryReconstruct(args));
+  }
+
+  if (name === "compute_code") {
+    return textResult(message.id, await queryComputeCode(args));
+  }
+
+  if (DATA_API_PRODUCT_TOOLS.has(name)) {
+    return textResult(message.id, await queryNativeProductTool(name, args));
+  }
+
+  if (NATIVE_TOOL_ALIASES[name]) {
+    return textResult(
+      message.id,
+      await callNativeMcpTool({
+        input: args,
+        nativeTool: NATIVE_TOOL_ALIASES[name],
+        productTool: name,
+        requestId: name,
+      }),
+    );
+  }
+
+  if (name === "native_mcp_call") {
+    return textResult(
+      message.id,
+      await callNativeMcpTool({
+        input: args,
+        productTool: "native_mcp_call",
+        requestId: "native-mcp-call",
+      }),
+    );
+  }
+
   if (name === "write_receipt") {
     const adapter = createLocalAdapter();
     return textResult(
@@ -268,6 +740,105 @@ async function handleToolCall(message) {
   }
 
   return error(message.id, -32602, `unknown tool: ${name}`);
+}
+
+function queryNativeProductTool(name, args) {
+  return callNativeMcpTool({
+    input: args,
+    nativeTool: name,
+    productTool: name,
+    requestId: name,
+  });
+}
+
+function queryReconstruct(args) {
+  if (isBinaryFromSourceRoute(args)) {
+    return reconstructBinaryFromSource(args);
+  }
+  const nativeTool = reconstructNativeTool(args);
+  return callNativeMcpTool({
+    input: {
+      ...args,
+      arguments: compoundArguments(args, {
+        dropOperation: selectionOnlyOperation(args),
+      }),
+    },
+    nativeTool,
+    productTool: "reconstruct",
+    requestId: "reconstruct",
+  });
+}
+
+function queryComputeCode(args) {
+  const nativeTool = computeCodeNativeTool(args);
+  return callNativeMcpTool({
+    input: {
+      ...args,
+      arguments: compoundArguments(args, {
+        dropOperation: selectionOnlyOperation(args),
+      }),
+    },
+    nativeTool,
+    productTool: "compute_code",
+    requestId: "compute-code",
+  });
+}
+
+function reconstructNativeTool(args) {
+  const route = routeSelector(args);
+  if (RECONSTRUCT_COMPOSE_MODES.has(route)) return "reverse_engineer_compose";
+  if (RECONSTRUCT_BINARY_MODES.has(route)) return "reconstruct_binary";
+  if (RECONSTRUCT_DATAWAVE_MODES.has(route)) return "datawave_ingest";
+  if (args.source || args.source_ref || args.github_url || args.repo_url || args.repo_id || args.repo || args.local_path || args.repo_path) {
+    return "reverse_engineer_compose";
+  }
+  if (args.binary_path || args.artifact_path || args.artifact_id || args.bytes_hex) {
+    return "reconstruct_binary";
+  }
+  if (args.record || args.records || args.helper || args.field || args.value) {
+    return "datawave_ingest";
+  }
+  return "";
+}
+
+function isBinaryFromSourceRoute(args) {
+  const route = routeSelector(args);
+  return route === "binary_from_source" || route === "build_binary" || route === "build_from_source";
+}
+
+function computeCodeNativeTool(args) {
+  const route = routeSelector(args);
+  return CODE_INGEST_MODES.has(route) ? "code_ingest" : "compute_code";
+}
+
+function routeSelector(args) {
+  return normalizeRoute(
+    args.mode ?? args.kind ?? args.surface ?? args.tool ?? args.native_tool ?? args.nativeTool ?? args.operation,
+  );
+}
+
+function selectionOnlyOperation(args) {
+  return SELECTION_ONLY_OPERATIONS.has(normalizeRoute(args.operation));
+}
+
+function compoundArguments(input, { dropOperation = false } = {}) {
+  const nested = input.arguments ?? input.args;
+  const source = nested && typeof nested === "object" && !Array.isArray(nested)
+    ? nested
+    : input;
+  return Object.fromEntries(
+    Object.entries(source)
+      .filter(([key]) => !COMPOUND_CONFIG_KEYS.has(key))
+      .filter(([key]) => !(dropOperation && key === "operation"))
+      .filter(([, value]) => value !== undefined),
+  );
+}
+
+function normalizeRoute(value) {
+  return String(value ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/[.\s]+/gu, "_");
 }
 
 function ok(id, result) {
@@ -339,6 +910,6 @@ async function runStdio() {
   }
 }
 
-if (fileURLToPath(import.meta.url) === resolve(process.argv[1])) {
+if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1])) {
   await runStdio();
 }

@@ -24,12 +24,14 @@
   "exports": {
     ".": "./src/product/compile-context.mjs",
     "./adapter": "./src/adapters/local-adapter.mjs",
+    "./binary-from-source": "./src/product/binary-from-source.mjs",
     "./contract": "./src/adapters/contract.mjs",
     "./compound-engineering": "./src/product/compound-engineering.mjs",
     "./doctor": "./src/product/doctor.mjs",
     "./index-context": "./src/product/index-context.mjs",
     "./index-spine": "./src/product/index-spine.mjs",
     "./manifest": "./src/product/load-manifest.mjs",
+    "./native-mcp": "./src/product/native-mcp.mjs",
     "./remote-doctor": "./src/product/remote-doctor.mjs",
     "./receipts": "./src/product/receipts.mjs",
     "./scorecards": "./src/product/scorecards.mjs"

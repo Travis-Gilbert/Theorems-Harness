@@ -6,8 +6,31 @@
   "must_be_visible_to_model": true,
   "local_fallback": "skills/reverse-engineer/SKILL.md",
   "backing": {
-    "product_verbs": ["reconstruct_binary", "code_ingest", "compute_code"],
-    "theorem_verbs": ["reconstruct_binary", "code_ingest", "compute_code"],
+    "product_verbs": [
+      "index_context",
+      "index_spine",
+      "reconstruct",
+      "compute_code"
+    ],
+    "theorem_verbs": [
+      "reverse_engineer_compose",
+      "reverse_engineer_slice",
+      "reverse_engineer_behavior_ir",
+      "reverse_engineer_target_plan",
+      "reverse_engineer_emit",
+      "reverse_engineer_validate",
+      "reverse_engineer_port",
+      "code_compile_spec",
+      "code_extract_features",
+      "code_implementation_obligations",
+      "code_patterns_relevant",
+      "code_spec_drift",
+      "datawave_ingest",
+      "reconstruct_binary",
+      "code_ingest",
+      "compute_code",
+      "graphql_query.reverseEngineerCompose"
+    ],
     "reconstruct_binary_operations": [
       "load",
       "analyze",
@@ -26,9 +49,6 @@
       "rustyred-thg-reconstruct",
       "rustyred-thg-reconstruct-harness",
       "rustyred-thg-code"
-    ],
-    "not_yet_wired": [
-      "theorem.ingest.datawave (rustyred-thg-datawave-harness): DATAWAVE intake pack exists as a crate but is not registered in the MCP server, so it is not agent-callable; report degraded if the task needs it"
     ]
   },
   "triggers": {
@@ -43,7 +63,9 @@
       "Inspect authoritative source first: files, manifests, routes, docs, tests, live browser/network behavior, or provided artifact bytes.",
       "Map entrypoints, components, APIs, data stores, state transitions, permissions, errors, dependencies, and deploy/runtime boundaries.",
       "Write reconstruction artifacts sized to the task: architecture map, behavior spec, data/API contract, parity checklist, implementation plan, and unknowns ledger.",
-      "Use Theorem code compiler, drift detector, pattern memory, or binary reconstruction tools when available; otherwise label the missing backend explicitly.",
+      "Use reconstruct as the front door when available; source mode composes repo ensure, code compiler, Datawave projection, binary summary, and receipts into one ReconstructionSpec.",
+      "Use reconstruct binary mode for Ghidra-style binary reconstruction only for binary artifacts or source refs with binary evidence; source repositories should not be decompiled just to recover behavior.",
+      "Use reconstruct binary_from_source mode only when the user explicitly wants a build-to-binary oracle; require confirmed build commands, hash the artifact, run Ghidra headless when configured, and optionally ingest exported facts through Datawave.",
       "Validate with tests, typecheck, build, smoke route, screenshot comparison, API fixture, golden output, or replayed user flow."
     ],
     "validation_defaults": [
@@ -51,7 +73,8 @@
       "Rebuild/parity plan includes at least one oracle or names the missing oracle.",
       "For repo targets, rg --files plus manifest/test inspection occurred before claims.",
       "For URL targets, rendered behavior and network/API observations are separated from inference.",
-      "For binary targets, unavailable reconstruction tooling is reported as degraded instead of source-level certainty."
+      "For binary targets, unavailable reconstruction tooling is reported as degraded instead of source-level certainty.",
+      "For binary_from_source, build command exit status, artifact hash, Ghidra status, and optional Datawave receipt are present."
     ],
     "anti_patterns": [
       "Treating visual similarity as behavioral parity.",
@@ -64,8 +87,12 @@
       "target_missing",
       "remote_unavailable",
       "artifact_unavailable",
+      "confirmation_required",
+      "ghidra_unavailable",
+      "ghidra_failed",
       "oracle_missing",
-      "reconstruction_backend_missing"
+      "reconstruction_backend_missing",
+      "compose_surface_missing"
     ]
   },
   "receipts": {
