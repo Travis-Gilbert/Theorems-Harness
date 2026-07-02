@@ -1,11 +1,17 @@
 {
   "name": "theorems-harness-product",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Agent delivery surface for Theorems Harness capabilities, hooks, and MCP facade.",
   "author": {
     "name": "Travis Gilbert"
   },
   "repository": "https://github.com/Travis-Gilbert/Theorems-Harness",
   "license": "MIT",
-  "keywords": ["mcp", "harness", "agent-context", "rust", "capability-manifest"]
+  "keywords": ["mcp", "harness", "agent-context", "rust", "capability-manifest"],
+  "commands": [
+    "./commands/graphql.md",
+    "./commands/code.md",
+    "./commands/reconstruct.md",
+    "./commands/memory.md"
+  ]
 }

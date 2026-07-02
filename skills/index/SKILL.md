@@ -1,7 +1,7 @@
 ---
 name: index
 description: This skill should be used when the user asks to "index context", "query memory", "find prior decisions", "assemble context", "inspect adaptive index state", "explain retrieval receipts", or needs memory, code maps, query receipts, and index-aware context before answering or acting.
-version: 0.1.2
+version: 0.1.3
 ---
 
 # Index

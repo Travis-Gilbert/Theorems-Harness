@@ -114,6 +114,17 @@ The MCP facade includes:
 - `native_mcp_call`
 - `write_receipt`
 
+The plugin also bundles slash-command shortcuts over the most common product
+surfaces:
+
+- `/graphql` routes to `graphql_query`, `graphql_mutate`, and
+  `graphql_introspect`
+- `/code` routes to `compute_code`, `understand_code`, `impact`, and `oracle`
+- `/reconstruct` routes to `reconstruct` compose, binary, binary-from-source,
+  and Datawave modes
+- `/memory` routes to `retrieve_memory`, `query_data`, `turn_start`, and
+  `evidence_bundle`
+
 `scorecards/capability-scorecards.json` is the measurement surface for trigger
 precision, trigger recall, prompt overhead, latency, degradation rate, and host
 visibility coverage.
