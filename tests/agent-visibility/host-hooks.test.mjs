@@ -89,10 +89,12 @@ test("host package uses product identity and portable MCP launch", () => {
 
   assert.equal(claudePlugin.name, "theorems-harness-product");
   assert.equal(codexPlugin.name, "theorems-harness-product");
-  assert.equal(claudePlugin.version, "0.1.2");
-  assert.equal(codexPlugin.version, "0.1.2");
+  assert.equal(claudePlugin.version, "0.1.3");
+  assert.equal(codexPlugin.version, "0.1.3");
   assert.equal(claudePlugin.hooks, undefined);
   assert.equal(claudePlugin.skills, undefined);
+  assert.deepEqual(claudePlugin.commands, PRODUCT_COMMANDS);
+  assert.deepEqual(codexPlugin.commands, PRODUCT_COMMANDS);
   assert.equal(codexPlugin.mcpServers, "./.mcp.json");
   assert.deepEqual(localMcp.mcpServers["theorems-harness-product"], {
     command: "sh",
@@ -108,10 +110,10 @@ test("marketplace manifests advertise the product plugin without colliding with 
   const codexMarketplace = readJson(".codex-plugin/marketplace.json");
 
   for (const marketplace of [claudeMarketplace, codexMarketplace]) {
-    assert.equal(marketplace.version, "0.1.2");
+    assert.equal(marketplace.version, "0.1.3");
     assert.equal(marketplace.plugins.length, 1);
     assert.equal(marketplace.plugins[0].name, "theorems-harness-product");
-    assert.equal(marketplace.plugins[0].version, "0.1.2");
+    assert.equal(marketplace.plugins[0].version, "0.1.3");
     assert.notEqual(marketplace.plugins[0].name, "theorems-harness");
   }
 });
@@ -121,9 +123,41 @@ test("product skills use Claude trigger metadata", () => {
     const source = readFileSync(resolve(root, "skills", skill, "SKILL.md"), "utf8");
 
     assert.match(source, /^description: This skill should be used when /m);
-    assert.match(source, /^version: 0\.1\.2$/m);
+    assert.match(source, /^version: 0\.1\.3$/m);
   }
 });
+
+test("product slash commands route to GraphQL, code, reconstruction, and memory tools", () => {
+  const expectations = {
+    "commands/graphql.md": ["graphql_query", "graphql_mutate", "graphql_introspect"],
+    "commands/code.md": ["compute_code", "understand_code", "impact", "oracle"],
+    "commands/reconstruct.md": [
+      "reconstruct",
+      "reverse_engineer_compose",
+      "reconstruct_binary",
+      "datawave_ingest",
+    ],
+    "commands/memory.md": ["query_data", "retrieve_memory", "turn_start", "evidence_bundle"],
+  };
+
+  for (const [path, tools] of Object.entries(expectations)) {
+    const source = readFileSync(resolve(root, path), "utf8");
+
+    assert.match(source, /^description: /m);
+    assert.match(source, /^argument-hint: /m);
+    for (const tool of tools) {
+      assert.match(source, new RegExp(`\\b${tool}\\b`));
+    }
+    assert.match(source, /degraded reason/);
+  }
+});
+
+const PRODUCT_COMMANDS = [
+  "./commands/graphql.md",
+  "./commands/code.md",
+  "./commands/reconstruct.md",
+  "./commands/memory.md",
+];
 
 function runHook(script, input) {
   const child = spawnSync(process.execPath, [resolve(root, script)], {
