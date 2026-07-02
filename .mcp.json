@@ -1,11 +1,11 @@
 {
   "mcpServers": {
     "theorems-harness-product": {
-      "command": "node",
+      "command": "sh",
       "args": [
-        "src/mcp/server.mjs"
-      ],
-      "cwd": "."
+        "-lc",
+        "cd \"${CLAUDE_PLUGIN_ROOT:-${PLUGIN_ROOT:-.}}\" && exec node src/mcp/server.mjs"
+      ]
     }
   }
 }
