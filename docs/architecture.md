@@ -1,7 +1,9 @@
 # Architecture
 
 Theorems Harness product is the membrane between agents and the Theorem/RustyRed
-substrate.
+substrate. It installs as `theorems-harness-product` so it can sit beside the
+broader `theorems-harness@codex-marketplace` workflow pack instead of colliding
+with it.
 
 ## Layers
 

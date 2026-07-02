@@ -14,6 +14,11 @@ The product repo tests what the agent actually sees.
 - Lifecycle hooks activate Compound Engineering on `PostToolUse` and `Stop`.
 - The doctor command can write receipts to a temporary log.
 - Capability scorecards exist for every manifest entry.
+- The product plugin installs as `theorems-harness-product` so it can coexist
+  with the broader `theorems-harness@codex-marketplace` workflow pack.
+- Claude Code does not explicitly list the default `hooks/hooks.json` in the
+  manifest, because that default file is auto-discovered and duplicate
+  registration can prevent the package from loading cleanly.
 
 ## Degraded States
 

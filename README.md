@@ -20,11 +20,17 @@ The repo owns:
 
 ## Host Packaging
 
-The Claude product package is skills and hooks only. It intentionally does not
-register this repo's local stdio MCP facade, because Claude.ai expects MCP tool
-servers it can authenticate and reach remotely. The product-local
-`theorems-harness-product` MCP facade remains exposed through the Codex/local
-package manifest for desktop and local harness diagnostics.
+The product package installs as `theorems-harness-product`, not
+`theorems-harness`. The broader `theorems-harness@codex-marketplace` package is
+the workflow/control-plane pack for planning, execution, coordination, and
+reporting. This package is the product facade: Data API, reconstruction, index,
+capability visibility, hooks, and the local MCP membrane over Theorem/RustyRed.
+
+Claude Code and Codex both discover the root `.mcp.json` when the plugin is
+enabled. The MCP launcher therefore resolves the plugin root through
+`${CLAUDE_PLUGIN_ROOT}` or `${PLUGIN_ROOT}` before starting
+`src/mcp/server.mjs`, so the facade does not depend on the user's current shell
+directory.
 
 Theorem/RustyRed own:
 

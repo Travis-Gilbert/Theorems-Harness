@@ -82,18 +82,37 @@ test("Claude and Codex hook configs install lifecycle Compound Engineering trigg
   }
 });
 
-test("Claude package keeps the local product MCP facade out of Claude.ai", () => {
+test("host package uses product identity and portable MCP launch", () => {
   const claudePlugin = readJson(".claude-plugin/plugin.json");
   const codexPlugin = readJson(".codex-plugin/plugin.json");
   const localMcp = readJson(".mcp.json");
 
-  assert.equal(claudePlugin.mcpServers, undefined);
+  assert.equal(claudePlugin.name, "theorems-harness-product");
+  assert.equal(codexPlugin.name, "theorems-harness-product");
+  assert.equal(claudePlugin.version, "0.1.1");
+  assert.equal(codexPlugin.version, "0.1.1");
+  assert.equal(claudePlugin.hooks, undefined);
   assert.equal(codexPlugin.mcpServers, "./.mcp.json");
   assert.deepEqual(localMcp.mcpServers["theorems-harness-product"], {
-    command: "node",
-    args: ["src/mcp/server.mjs"],
-    cwd: ".",
+    command: "sh",
+    args: [
+      "-lc",
+      "cd \"${CLAUDE_PLUGIN_ROOT:-${PLUGIN_ROOT:-.}}\" && exec node src/mcp/server.mjs",
+    ],
   });
+});
+
+test("marketplace manifests advertise the product plugin without colliding with workflow harness", () => {
+  const claudeMarketplace = readJson(".claude-plugin/marketplace.json");
+  const codexMarketplace = readJson(".codex-plugin/marketplace.json");
+
+  for (const marketplace of [claudeMarketplace, codexMarketplace]) {
+    assert.equal(marketplace.version, "0.1.1");
+    assert.equal(marketplace.plugins.length, 1);
+    assert.equal(marketplace.plugins[0].name, "theorems-harness-product");
+    assert.equal(marketplace.plugins[0].version, "0.1.1");
+    assert.notEqual(marketplace.plugins[0].name, "theorems-harness");
+  }
 });
 
 function runHook(script, input) {
