@@ -12,6 +12,17 @@ import { handleRpcMessage } from "../../src/mcp/server.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 
+test("MCP facade initialize reports product version", async () => {
+  const response = await handleRpcMessage({
+    jsonrpc: "2.0",
+    id: 0,
+    method: "initialize",
+  });
+
+  assert.equal(response.result.serverInfo.name, "theorems-harness-product");
+  assert.equal(response.result.serverInfo.version, "0.1.4");
+});
+
 test("MCP facade lists product tools", async () => {
   const response = await handleRpcMessage({
     jsonrpc: "2.0",
@@ -25,6 +36,10 @@ test("MCP facade lists product tools", async () => {
   assert.equal(response.result.tools.some((tool) => tool.name === "remote_doctor"), true);
   assert.equal(response.result.tools.some((tool) => tool.name === "index_context"), true);
   assert.equal(response.result.tools.some((tool) => tool.name === "index_spine"), true);
+  assert.equal(response.result.tools.some((tool) => tool.name === "grep"), true);
+  assert.equal(response.result.tools.some((tool) => tool.name === "semantic_grep"), true);
+  assert.equal(response.result.tools.some((tool) => tool.name === "memory_grep"), true);
+  assert.equal(response.result.tools.some((tool) => tool.name === "mgrep"), true);
   assert.equal(response.result.tools.some((tool) => tool.name === "query_data"), true);
   assert.equal(response.result.tools.some((tool) => tool.name === "retrieve_memory"), true);
   assert.equal(response.result.tools.some((tool) => tool.name === "turn_start"), true);
@@ -59,6 +74,7 @@ test("MCP stdio server responds to a single exact framed tools/list request", ()
   assert.match(child.stdout, /Content-Length:/);
   assert.match(child.stdout, /prepare_context/);
   assert.match(child.stdout, /index_context/);
+  assert.match(child.stdout, /semantic_grep/);
 });
 
 test("MCP facade compiles Rust context packet", async () => {
@@ -170,6 +186,140 @@ test("MCP facade degrades index context when no remote MCP is configured", async
   assert.equal(payload.status, "degraded");
   assert.equal(payload.reason, "remote_unavailable");
   assert.equal(payload.product_tool, "index_context");
+});
+
+test("MCP facade runs local grep with code-neighborhood formatting", async () => {
+  const dir = await mkdtemp(join(tmpdir(), "theorems-harness-grep-"));
+  try {
+    await mkdir(join(dir, "src"));
+    await writeFile(
+      join(dir, "src", "demo.mjs"),
+      [
+        "export function alphaSearchTarget() {",
+        "  return \"needle-value\";",
+        "}",
+        "",
+      ].join("\n"),
+      "utf8",
+    );
+
+    const response = await handleRpcMessage({
+      jsonrpc: "2.0",
+      id: 80,
+      method: "tools/call",
+      params: {
+        name: "grep",
+        arguments: {
+          cwd: dir,
+          query: "needle-value",
+          context_lines: 1,
+        },
+      },
+    });
+
+    const payload = JSON.parse(response.result.content[0].text);
+    assert.equal(payload.status, "ok");
+    assert.equal(payload.product_tool, "grep");
+    assert.equal(payload.backend, "local-files");
+    assert.equal(payload.results.length, 1);
+    assert.equal(payload.results[0].path, "src/demo.mjs");
+    assert.equal(payload.results[0].line_number, 2);
+    assert.match(payload.results[0].symbol, /alphaSearchTarget/);
+    assert.match(payload.results[0].excerpt, /needle-value/);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("MCP facade runs local semantic grep over ranked chunks", async () => {
+  const dir = await mkdtemp(join(tmpdir(), "theorems-harness-semantic-grep-"));
+  try {
+    await mkdir(join(dir, "src"));
+    await writeFile(
+      join(dir, "src", "checkout.mjs"),
+      [
+        "export function checkoutRiskOracle() {",
+        "  const validators = [\"cart total\", \"payment capture\", \"inventory hold\"];",
+        "  return validators.join(\",\");",
+        "}",
+      ].join("\n"),
+      "utf8",
+    );
+    await writeFile(
+      join(dir, "src", "noise.mjs"),
+      "export const unrelated = \"plain settings\";\n",
+      "utf8",
+    );
+
+    const response = await handleRpcMessage({
+      jsonrpc: "2.0",
+      id: 81,
+      method: "tools/call",
+      params: {
+        name: "semantic_grep",
+        arguments: {
+          cwd: dir,
+          query: "payment validators checkout risk",
+          limit: 1,
+        },
+      },
+    });
+
+    const payload = JSON.parse(response.result.content[0].text);
+    assert.equal(payload.status, "ok");
+    assert.equal(payload.product_tool, "semantic_grep");
+    assert.equal(payload.backend, "local-hybrid-lexical");
+    assert.equal(payload.results.length, 1);
+    assert.equal(payload.results[0].path, "src/checkout.mjs");
+    assert.match(payload.results[0].symbol, /checkoutRiskOracle/);
+    assert.ok(payload.results[0].score > 0);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("MCP facade degrades memory grep when no remote MCP is configured", async () => {
+  const response = await handleRpcMessage({
+    jsonrpc: "2.0",
+    id: 82,
+    method: "tools/call",
+    params: {
+      name: "memory_grep",
+      arguments: {
+        remote_url: "",
+        query: "grep tools memory search",
+        repo: "Theorems-Harness",
+      },
+    },
+  });
+
+  const payload = JSON.parse(response.result.content[0].text);
+  assert.equal(payload.status, "degraded");
+  assert.equal(payload.reason, "remote_unavailable");
+  assert.equal(payload.product_tool, "memory_grep");
+  assert.equal(payload.native_tool, "retrieve_memory");
+});
+
+test("MCP facade routes mgrep memory source through memory grep", async () => {
+  const response = await handleRpcMessage({
+    jsonrpc: "2.0",
+    id: 83,
+    method: "tools/call",
+    params: {
+      name: "mgrep",
+      arguments: {
+        remote_url: "",
+        source: "memory",
+        query: "multi source memory search",
+      },
+    },
+  });
+
+  const payload = JSON.parse(response.result.content[0].text);
+  assert.equal(payload.status, "degraded");
+  assert.equal(payload.reason, "remote_unavailable");
+  assert.equal(payload.product_tool, "mgrep");
+  assert.equal(payload.native_tool, "retrieve_memory");
 });
 
 test("MCP facade degrades query_data when no remote MCP is configured", async () => {

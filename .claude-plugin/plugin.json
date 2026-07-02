@@ -1,6 +1,6 @@
 {
   "name": "theorems-harness-product",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Agent delivery surface for Theorems Harness capabilities, hooks, and MCP facade.",
   "author": {
     "name": "Travis Gilbert"
@@ -12,6 +12,7 @@
     "./commands/graphql.md",
     "./commands/code.md",
     "./commands/reconstruct.md",
-    "./commands/memory.md"
+    "./commands/memory.md",
+    "./commands/grep.md"
   ]
 }

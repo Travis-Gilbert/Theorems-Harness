@@ -14,6 +14,7 @@ Interpret `$1` as an optional mode:
 - `query`, `search`, or no mode: call `retrieve_memory` when the target is memory
   recall, or `query_data` when the user supplies exact filters, ids, collections,
   labels, status, validity, repo, path, room, source, or tag constraints.
+- `grep`: call `memory_grep` for memory search with Data API filters preserved.
 - `turn`, `start`, or `brief`: call `turn_start`.
 - `evidence`, `bundle`, or `cite`: call `evidence_bundle`.
 - `record`, `data`, or `records`: call `query_data`.
@@ -28,6 +29,7 @@ Prefer these product tools:
 2. `query_data` for exact records, filters, cursoring, or link hydration.
 3. `turn_start` for compact work packets at the beginning of a task.
 4. `evidence_bundle` for cited records, provenance, links, and snippets.
+5. `memory_grep` when the user asks for grep-like search over memory records.
 
 If the Data API or memory MCP surface is unavailable, report the degraded reason
 such as `remote_unavailable`, `contract_missing`, `tenant_unavailable`, or

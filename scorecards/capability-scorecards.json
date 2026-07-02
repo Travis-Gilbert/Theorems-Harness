@@ -52,6 +52,18 @@
         "tests/agent-visibility/mcp-server.test.mjs"
       ]
     },
+    "grep-tools": {
+      "status": "measured-local",
+      "current": {
+        "visibility_tests": 4,
+        "degradation_reason": "remote_unavailable_for_memory_only"
+      },
+      "evidence": [
+        "tests/agent-visibility/capability-context.test.mjs",
+        "tests/agent-visibility/mcp-server.test.mjs",
+        "tests/agent-visibility/host-hooks.test.mjs"
+      ]
+    },
     "reverse-engineer": {
       "status": "measured-product-proxy",
       "current": {
