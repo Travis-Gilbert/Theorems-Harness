@@ -23,6 +23,33 @@ test("Claude-style prompt hook injects Rust Engineering context", () => {
   );
 });
 
+test("prompt hook activates Affordance Router for exact graph and table work", () => {
+  const prompts = [
+    "Which nodes are reachable from A in this graph?",
+    "How many records match this predicate, grouped by kind?",
+    "Join these tables and return the count by status",
+    "Compute the set difference between these result sets",
+  ];
+
+  for (const prompt of prompts) {
+    const response = runHook("src/bin/prepare-context.mjs", {
+      hook_event_name: "UserPromptSubmit",
+      prompt,
+      cwd: root,
+      changed_files: [],
+    });
+
+    assert.equal(
+      response.theoremsHarness.active_capabilities.some(
+        (item) => item.id === "affordance-router",
+      ),
+      true,
+      prompt,
+    );
+    assert.match(response.hookSpecificOutput.additionalContext, /compute_offload\.route_operation/);
+  }
+});
+
 test("lifecycle hook preserves Stop and activates Compound Engineering", () => {
   const response = runHook("src/bin/prepare-context.mjs", {
     hook_event_name: "Stop",
@@ -89,8 +116,8 @@ test("host package uses product identity and portable MCP launch", () => {
 
   assert.equal(claudePlugin.name, "theorems-harness-product");
   assert.equal(codexPlugin.name, "theorems-harness-product");
-  assert.equal(claudePlugin.version, "0.1.4");
-  assert.equal(codexPlugin.version, "0.1.4");
+  assert.equal(claudePlugin.version, "0.1.5");
+  assert.equal(codexPlugin.version, "0.1.5");
   assert.equal(claudePlugin.hooks, undefined);
   assert.equal(claudePlugin.skills, undefined);
   assert.deepEqual(claudePlugin.commands, PRODUCT_COMMANDS);
@@ -110,10 +137,10 @@ test("marketplace manifests advertise the product plugin without colliding with 
   const codexMarketplace = readJson(".codex-plugin/marketplace.json");
 
   for (const marketplace of [claudeMarketplace, codexMarketplace]) {
-    assert.equal(marketplace.version, "0.1.4");
+    assert.equal(marketplace.version, "0.1.5");
     assert.equal(marketplace.plugins.length, 1);
     assert.equal(marketplace.plugins[0].name, "theorems-harness-product");
-    assert.equal(marketplace.plugins[0].version, "0.1.4");
+    assert.equal(marketplace.plugins[0].version, "0.1.5");
     assert.notEqual(marketplace.plugins[0].name, "theorems-harness");
   }
 });

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { stdin, stdout } from "node:process";
 import { fileURLToPath } from "node:url";
@@ -15,6 +16,10 @@ import { callNativeMcpTool, nativeMcpConfigSchemaProperties } from "../product/n
 import { runRemoteDoctor } from "../product/remote-doctor.mjs";
 import { loadCapabilityScorecards } from "../product/scorecards.mjs";
 import { reconstructBinaryFromSource } from "../product/binary-from-source.mjs";
+
+const PACKAGE_VERSION = JSON.parse(
+  readFileSync(new URL("../../package.json", import.meta.url), "utf8"),
+).version;
 
 const NATIVE_TOOL_ALIASES = Object.freeze({
   code_ingest: "code_ingest",
@@ -156,7 +161,7 @@ export async function handleRpcMessage(message) {
       protocolVersion: "2024-11-05",
       serverInfo: {
         name: "theorems-harness-product",
-        version: "0.1.4",
+        version: PACKAGE_VERSION,
       },
       capabilities: {
         tools: {},
