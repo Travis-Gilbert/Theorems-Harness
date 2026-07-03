@@ -9,10 +9,10 @@
     "runtime_modules": ["rustyred-thg-affordances", "rustyred-thg-connectors"]
   },
   "triggers": {
-    "prompt_regex": "\\b(connector|external tool|invoke|affordance|search tools|which tool)\\b"
+    "prompt_regex": "\\b(connector|external tool|invoke|affordance|search tools|which tool|reachability|transitive closure|shortest path|weighted path|route_operation)\\b"
   },
   "context": {
-    "directive": "Keep connector details behind tool_search/invoke instead of advertising every spoke as a flat model tool."
+    "directive": "Keep connector details behind tool_search/invoke instead of advertising every spoke as a flat model tool. For graph or tabular questions with an exact answer (reachability, transitive closure, shortest or weighted paths, counts, aggregations, set operations, joins), route to compute_offload.route_operation before reasoning and reason only over the returned facts."
   },
   "receipts": {
     "events": ["AffordanceSelected", "AffordanceInvoked"]

@@ -1,6 +1,6 @@
 {
   "name": "theorems-harness-product",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Product delivery surface for Theorems Harness capabilities, hooks, and MCP facade.",
   "type": "module",
   "private": false,
