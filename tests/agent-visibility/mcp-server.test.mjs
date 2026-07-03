@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { once } from "node:events";
+import { readFileSync } from "node:fs";
 import { chmod, mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { createServer } from "node:http";
 import { dirname, join, resolve } from "node:path";
@@ -11,6 +12,7 @@ import test from "node:test";
 import { handleRpcMessage } from "../../src/mcp/server.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
+const packageVersion = JSON.parse(readFileSync(resolve(root, "package.json"), "utf8")).version;
 
 test("MCP facade initialize reports product version", async () => {
   const response = await handleRpcMessage({
@@ -20,7 +22,7 @@ test("MCP facade initialize reports product version", async () => {
   });
 
   assert.equal(response.result.serverInfo.name, "theorems-harness-product");
-  assert.equal(response.result.serverInfo.version, "0.1.4");
+  assert.equal(response.result.serverInfo.version, packageVersion);
 });
 
 test("MCP facade lists product tools", async () => {
