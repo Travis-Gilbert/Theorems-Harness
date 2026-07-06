@@ -2,7 +2,6 @@ import { localFallbackSuppressed } from "./native-mcp.mjs";
 
 const NATIVE_COMPOUND_ROUTE = "/harness/compound-engineering";
 const DEFAULT_LOCAL_HTTP_URL = "http://127.0.0.1:8380";
-const DEFAULT_TENANT = "Travis-Gilbert";
 const REMOTE_URL_ENV = Object.freeze([
   "THEOREMS_HARNESS_HTTP_URL",
   "THEOREM_HARNESS_HTTP_URL",
@@ -168,7 +167,7 @@ function hasExplicitRemoteUrl(input) {
 }
 
 function tenantFrom(input) {
-  const configured = String(
+  return String(
     input.tenant
       ?? input.tenant_slug
       ?? input.tenantSlug
@@ -179,10 +178,6 @@ function tenantFrom(input) {
       ?? process.env.RUSTYRED_THG_TENANT
       ?? "",
   ).trim();
-  if (configured || localFallbackSuppressed()) {
-    return configured;
-  }
-  return DEFAULT_TENANT;
 }
 
 function tokenFrom(input) {
