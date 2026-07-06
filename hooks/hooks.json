@@ -1,6 +1,32 @@
 {
   "description": "Theorems Harness product hooks for Claude Code.",
   "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "shell": "bash",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/src/bin/session-run-open.mjs\"",
+            "timeout": 25,
+            "statusMessage": "Opening Theorems Harness session run"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "shell": "bash",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/src/bin/session-run-close.mjs\"",
+            "timeout": 25,
+            "statusMessage": "Closing Theorems Harness session run"
+          }
+        ]
+      }
+    ],
     "UserPromptSubmit": [
       {
         "hooks": [
@@ -38,6 +64,18 @@
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/src/bin/prepare-context.mjs\"",
             "timeout": 10,
             "statusMessage": "Recording Theorems Harness outcome signals"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash|Edit|Write|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "shell": "bash",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/src/bin/session-run-tool.mjs\"",
+            "timeout": 10,
+            "statusMessage": "Recording Theorems Harness session run tool event"
           }
         ]
       }

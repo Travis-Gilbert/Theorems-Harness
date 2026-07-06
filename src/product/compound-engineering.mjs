@@ -1,4 +1,7 @@
+import { localFallbackSuppressed } from "./native-mcp.mjs";
+
 const NATIVE_COMPOUND_ROUTE = "/harness/compound-engineering";
+const DEFAULT_LOCAL_HTTP_URL = "http://127.0.0.1:8380";
 const REMOTE_URL_ENV = Object.freeze([
   "THEOREMS_HARNESS_HTTP_URL",
   "THEOREM_HARNESS_HTTP_URL",
@@ -135,7 +138,7 @@ function degraded({ reason, requested, remoteUrl = "", httpStatus = 0, error = u
 }
 
 function remoteUrlFrom(input) {
-  return String(
+  const configured = String(
     input.http_url
       ?? input.httpUrl
       ?? input.remote_url
@@ -147,6 +150,20 @@ function remoteUrlFrom(input) {
       ?? process.env.THEOREM_REMOTE_URL
       ?? "",
   ).trim();
+  if (configured) {
+    return configured;
+  }
+  // An explicit empty url is a deliberate opt-out, so only fall back when
+  // nothing was set and the local fallback is not suppressed.
+  if (hasExplicitRemoteUrl(input) || localFallbackSuppressed()) {
+    return "";
+  }
+  return DEFAULT_LOCAL_HTTP_URL;
+}
+
+function hasExplicitRemoteUrl(input) {
+  return [input.http_url, input.httpUrl, input.remote_url, input.remoteUrl]
+    .some((value) => value !== undefined);
 }
 
 function tenantFrom(input) {

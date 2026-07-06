@@ -39,6 +39,12 @@ const DATA_API_PRODUCT_TOOLS = new Set([
   "impact",
   "oracle",
   "observe_web",
+  "harness_run",
+  "harness_prepare",
+  "harness_append_transition",
+  "composed_agent_run",
+  "multihead_run",
+  "spawn_session",
 ]);
 const GREP_NATIVE_BACKENDS = new Set([
   "native",
@@ -742,6 +748,107 @@ export function toolsList() {
           args: { type: "object" },
           ...nativeMcpConfigSchemaProperties(),
         },
+      },
+    },
+    {
+      name: "harness_run",
+      description: "Poll a harness run's detail and event log by run id through the native MCP endpoint.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          run_id: { type: "string" },
+          ...nativeMcpConfigSchemaProperties(),
+        },
+        required: ["run_id"],
+      },
+    },
+    {
+      name: "harness_prepare",
+      description: "Prepare a harness run for a task: profile selection, toolkit compilation, and context planning through the native MCP endpoint.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          task: { type: "string" },
+          actor: { type: "string" },
+          budget_units: { type: "number" },
+          max_selected: { type: "number" },
+          memory_limit: { type: "number" },
+          surface: { type: "string" },
+          ...nativeMcpConfigSchemaProperties(),
+        },
+        required: ["task"],
+      },
+    },
+    {
+      name: "harness_append_transition",
+      description: "Append a typed transition to the harness run state machine. Drives the run lifecycle (RUN.CREATED through RUN.CLOSED) and fires compound-engineering capture on RUN.CLOSED and RUN.FAILED. Pass top-level fields or a full transition object.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          type: {
+            type: "string",
+            description: "Event type, e.g. RUN.CREATED. Required unless a transition object is provided.",
+          },
+          run_id: {
+            type: "string",
+            description: "Run id. Required for every type except RUN.CREATED.",
+          },
+          payload: { type: "object" },
+          actor: { type: "string" },
+          idempotency_key: { type: "string" },
+          created_at: { type: "string" },
+          transition: { type: "object" },
+          ...nativeMcpConfigSchemaProperties(),
+        },
+      },
+    },
+    {
+      name: "composed_agent_run",
+      description: "Run a composed agent for a task through the native MCP endpoint, optionally pinned to a binding and claims.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          task: { type: "string" },
+          binding_id: { type: "string" },
+          claims: { type: "array", items: { type: "object" } },
+          ...nativeMcpConfigSchemaProperties(),
+        },
+        required: ["task"],
+      },
+    },
+    {
+      name: "multihead_run",
+      description: "Start or inspect a multihead run through the native MCP endpoint. action=status is read-only.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          action: {
+            type: "string",
+            description: "start (default) or status (read-only).",
+          },
+          run_id: { type: "string" },
+          goal: { type: "string" },
+          actor: { type: "string" },
+          ...nativeMcpConfigSchemaProperties(),
+        },
+      },
+    },
+    {
+      name: "spawn_session",
+      description: "Spawn a coordinated agent session record through the native MCP endpoint.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          actor: { type: "string" },
+          intent: { type: "string" },
+          owner: { type: "string" },
+          repo: { type: "string" },
+          branch: { type: "string" },
+          event_type: { type: "string" },
+          metadata: { type: "object" },
+          ...nativeMcpConfigSchemaProperties(),
+        },
+        required: ["actor", "intent"],
       },
     },
     {

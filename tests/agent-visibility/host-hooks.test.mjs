@@ -104,8 +104,32 @@ test("Claude and Codex hook configs install lifecycle Compound Engineering trigg
   const codexHooks = readJson("hooks/codex-hooks.json");
 
   for (const config of [claudeHooks, codexHooks]) {
-    assert.ok(config.hooks.Stop, "Stop hook is registered");
+    assert.ok(config.hooks.SessionStart, "SessionStart hook is registered");
+    assert.ok(config.hooks.SessionEnd, "SessionEnd hook is registered");
     assert.ok(config.hooks.PostToolUse, "PostToolUse hook is registered");
+    assert.match(
+      hookCommands(config.hooks.SessionStart).join("\n"),
+      /session-run-open\.mjs/,
+      "SessionStart opens the session run",
+    );
+    assert.match(
+      hookCommands(config.hooks.SessionEnd).join("\n"),
+      /session-run-close\.mjs/,
+      "SessionEnd closes the session run",
+    );
+    assert.match(
+      hookCommands(config.hooks.PostToolUse).join("\n"),
+      /session-run-tool\.mjs/,
+      "PostToolUse records session run tool events",
+    );
+    assert.ok(
+      hookTimeouts(config.hooks.SessionStart).every((timeout) => timeout >= 25),
+      "SessionStart lifecycle hook has enough budget for sequential native appends",
+    );
+    assert.ok(
+      hookTimeouts(config.hooks.SessionEnd).every((timeout) => timeout >= 25),
+      "SessionEnd lifecycle hook has enough budget for close/fail retry appends",
+    );
   }
 });
 
@@ -116,8 +140,8 @@ test("host package uses product identity and portable MCP launch", () => {
 
   assert.equal(claudePlugin.name, "theorems-harness-product");
   assert.equal(codexPlugin.name, "theorems-harness-product");
-  assert.equal(claudePlugin.version, "0.1.5");
-  assert.equal(codexPlugin.version, "0.1.5");
+  assert.equal(claudePlugin.version, "0.1.7");
+  assert.equal(codexPlugin.version, "0.1.7");
   assert.equal(claudePlugin.hooks, undefined);
   assert.equal(claudePlugin.skills, undefined);
   assert.deepEqual(claudePlugin.commands, PRODUCT_COMMANDS);
@@ -137,10 +161,10 @@ test("marketplace manifests advertise the product plugin without colliding with 
   const codexMarketplace = readJson(".codex-plugin/marketplace.json");
 
   for (const marketplace of [claudeMarketplace, codexMarketplace]) {
-    assert.equal(marketplace.version, "0.1.5");
+    assert.equal(marketplace.version, "0.1.7");
     assert.equal(marketplace.plugins.length, 1);
     assert.equal(marketplace.plugins[0].name, "theorems-harness-product");
-    assert.equal(marketplace.plugins[0].version, "0.1.5");
+    assert.equal(marketplace.plugins[0].version, "0.1.7");
     assert.notEqual(marketplace.plugins[0].name, "theorems-harness");
   }
 });
@@ -201,4 +225,12 @@ function runHook(script, input) {
 
 function readJson(path) {
   return JSON.parse(readFileSync(resolve(root, path), "utf8"));
+}
+
+function hookCommands(entries) {
+  return (entries ?? []).flatMap((entry) => (entry.hooks ?? []).map((hook) => hook.command ?? ""));
+}
+
+function hookTimeouts(entries) {
+  return (entries ?? []).flatMap((entry) => (entry.hooks ?? []).map((hook) => Number(hook.timeout ?? 0)));
 }

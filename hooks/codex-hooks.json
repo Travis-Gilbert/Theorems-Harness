@@ -1,6 +1,30 @@
 {
   "description": "Theorems Harness product hooks for Codex. These hooks compile local capability context before the model acts.",
   "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${PLUGIN_ROOT}/src/bin/session-run-open.mjs\"",
+            "timeout": 25,
+            "statusMessage": "Opening Theorems Harness session run"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${PLUGIN_ROOT}/src/bin/session-run-close.mjs\"",
+            "timeout": 25,
+            "statusMessage": "Closing Theorems Harness session run"
+          }
+        ]
+      }
+    ],
     "UserPromptSubmit": [
       {
         "hooks": [
@@ -35,6 +59,17 @@
             "command": "node \"${PLUGIN_ROOT}/src/bin/prepare-context.mjs\"",
             "timeout": 10,
             "statusMessage": "Recording Theorems Harness outcome signals"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash|exec_command|functions.exec_command|apply_patch|functions.apply_patch|Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${PLUGIN_ROOT}/src/bin/session-run-tool.mjs\"",
+            "timeout": 10,
+            "statusMessage": "Recording Theorems Harness session run tool event"
           }
         ]
       }

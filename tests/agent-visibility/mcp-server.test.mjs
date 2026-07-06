@@ -58,6 +58,12 @@ test("MCP facade lists product tools", async () => {
   assert.equal(response.result.tools.some((tool) => tool.name === "observe_web"), true);
   assert.equal(response.result.tools.some((tool) => tool.name === "native_mcp_call"), true);
   assert.equal(response.result.tools.some((tool) => tool.name === "capability_scorecards"), true);
+  assert.equal(response.result.tools.some((tool) => tool.name === "harness_run"), true);
+  assert.equal(response.result.tools.some((tool) => tool.name === "harness_prepare"), true);
+  assert.equal(response.result.tools.some((tool) => tool.name === "harness_append_transition"), true);
+  assert.equal(response.result.tools.some((tool) => tool.name === "composed_agent_run"), true);
+  assert.equal(response.result.tools.some((tool) => tool.name === "multihead_run"), true);
+  assert.equal(response.result.tools.some((tool) => tool.name === "spawn_session"), true);
   assert.equal(response.result.tools.some((tool) => tool.name === "reverse_engineer_compose"), false);
   assert.equal(response.result.tools.some((tool) => tool.name === "reconstruct_binary"), false);
   assert.equal(response.result.tools.some((tool) => tool.name === "datawave_ingest"), false);
@@ -364,6 +370,27 @@ test("MCP facade degrades compound engineering when no remote harness is configu
   assert.equal(payload.status, "degraded");
   assert.equal(payload.reason, "remote_unavailable");
   assert.equal(payload.product_tool, "compound_engineering");
+});
+
+test("MCP facade degrades compound engineering when tenant is not configured", async () => {
+  const response = await handleRpcMessage({
+    jsonrpc: "2.0",
+    id: 90,
+    method: "tools/call",
+    params: {
+      name: "compound_engineering",
+      arguments: {
+        remote_url: "http://127.0.0.1:1",
+        tenant: "",
+      },
+    },
+  });
+
+  const payload = JSON.parse(response.result.content[0].text);
+  assert.equal(payload.status, "degraded");
+  assert.equal(payload.reason, "tenant_unavailable");
+  assert.equal(payload.product_tool, "compound_engineering");
+  assert.equal(payload.requested.tenant, null);
 });
 
 test("MCP facade degrades reconstruct compose when no remote MCP is configured", async () => {
@@ -1347,6 +1374,113 @@ test("MCP facade proxies generic native MCP diagnostic calls", async () => {
     assert.deepEqual(requests[0].body.params.arguments, {
       operation: "describe",
     });
+  } finally {
+    server.close();
+    await once(server, "close");
+  }
+});
+
+test("MCP facade proxies run-lifecycle product tools to native MCP", async () => {
+  const cases = [
+    {
+      name: "harness_run",
+      arguments: {
+        run_id: "harnessrun:cc-demo",
+      },
+    },
+    {
+      name: "harness_prepare",
+      arguments: {
+        task: "demo task",
+        actor: "claude-code",
+        budget_units: 5,
+      },
+    },
+    {
+      name: "harness_append_transition",
+      arguments: {
+        type: "RUN.CREATED",
+        run_id: "harnessrun:cc-demo",
+        actor: "claude-code",
+        idempotency_key: "harnessrun:cc-demo:run-created",
+        payload: { task: "demo task" },
+      },
+    },
+    {
+      name: "composed_agent_run",
+      arguments: {
+        task: "demo task",
+        binding_id: "binding:demo",
+      },
+    },
+    {
+      name: "multihead_run",
+      arguments: {
+        action: "status",
+        run_id: "multihead:demo",
+      },
+    },
+    {
+      name: "spawn_session",
+      arguments: {
+        actor: "claude-code",
+        intent: "demo intent",
+        repo: "Theorems-Harness",
+      },
+    },
+  ];
+  const requests = [];
+  const server = createServer(async (request, response) => {
+    const body = await readBody(request);
+    const parsed = JSON.parse(body);
+    requests.push({ url: request.url, body: parsed });
+    writeJson(response, {
+      jsonrpc: "2.0",
+      id: parsed.id,
+      result: {
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify({
+              echoed_tool: parsed.params.name,
+              echoed_arguments: parsed.params.arguments,
+            }),
+          },
+        ],
+      },
+    });
+  });
+  server.listen(0, "127.0.0.1");
+  await once(server, "listening");
+  const { port } = server.address();
+
+  try {
+    for (const fixture of cases) {
+      const response = await handleRpcMessage({
+        jsonrpc: "2.0",
+        id: `run-lifecycle-${fixture.name}`,
+        method: "tools/call",
+        params: {
+          name: fixture.name,
+          arguments: {
+            remote_url: `http://127.0.0.1:${port}`,
+            ...fixture.arguments,
+          },
+        },
+      });
+
+      const payload = JSON.parse(response.result.content[0].text);
+      assert.equal(payload.status, "ok");
+      assert.equal(payload.product_tool, fixture.name);
+      assert.equal(payload.native_tool, fixture.name);
+      assert.equal(payload.result.echoed_tool, fixture.name);
+      assert.deepEqual(payload.result.echoed_arguments, fixture.arguments);
+    }
+
+    assert.deepEqual(
+      requests.map((request) => request.body.params.name),
+      cases.map((fixture) => fixture.name),
+    );
   } finally {
     server.close();
     await once(server, "close");
