@@ -1,4 +1,6 @@
 const DEFAULT_MCP_PATH = "/mcp";
+const DEFAULT_LOCAL_MCP_URL = "http://127.0.0.1:8380/mcp";
+const NO_LOCAL_FALLBACK_ENV = "THEOREMS_HARNESS_NO_LOCAL_FALLBACK";
 const REMOTE_URL_ENV = Object.freeze([
   "THEOREMS_HARNESS_MCP_URL",
   "THEOREM_HARNESS_MCP_URL",
@@ -202,7 +204,7 @@ function mcpEndpoint(remoteUrl, input) {
 }
 
 function remoteUrlFrom(input) {
-  return String(
+  const configured = String(
     input.mcp_url
       ?? input.mcpUrl
       ?? input.remote_url
@@ -215,6 +217,25 @@ function remoteUrlFrom(input) {
       ?? process.env.THEOREM_REMOTE_URL
       ?? "",
   ).trim();
+  if (configured) {
+    return configured;
+  }
+  // An explicit empty url is a deliberate opt-out (tests and callers rely on
+  // deterministic degraded states), so only fall back when nothing was set.
+  if (hasExplicitRemoteUrl(input) || localFallbackSuppressed()) {
+    return "";
+  }
+  return DEFAULT_LOCAL_MCP_URL;
+}
+
+function hasExplicitRemoteUrl(input) {
+  return [input.mcp_url, input.mcpUrl, input.remote_url, input.remoteUrl]
+    .some((value) => value !== undefined);
+}
+
+export function localFallbackSuppressed() {
+  const raw = String(process.env[NO_LOCAL_FALLBACK_ENV] ?? "").trim().toLowerCase();
+  return raw === "1" || raw === "true" || raw === "yes";
 }
 
 function tokenFrom(input) {
