@@ -155,7 +155,7 @@ function remoteUrlFrom(input) {
   }
   // An explicit empty url is a deliberate opt-out, so only fall back when
   // nothing was set and the local fallback is not suppressed.
-  if (hasExplicitRemoteUrl(input) || localFallbackSuppressed()) {
+  if (hasExplicitRemoteUrl(input) || hasExplicitRemoteUrlEnv() || localFallbackSuppressed()) {
     return "";
   }
   return DEFAULT_LOCAL_HTTP_URL;
@@ -164,6 +164,10 @@ function remoteUrlFrom(input) {
 function hasExplicitRemoteUrl(input) {
   return [input.http_url, input.httpUrl, input.remote_url, input.remoteUrl]
     .some((value) => value !== undefined);
+}
+
+function hasExplicitRemoteUrlEnv() {
+  return REMOTE_URL_ENV.some((key) => Object.prototype.hasOwnProperty.call(process.env, key));
 }
 
 function tenantFrom(input) {

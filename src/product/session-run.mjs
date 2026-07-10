@@ -329,7 +329,9 @@ function sessionRunEnabled() {
 }
 
 function sessionIdFrom(hookInput) {
-  return String(hookInput.session_id ?? "").trim();
+  const id = String(hookInput.session_id ?? "").trim();
+  if (id.includes("/") || id.includes("\\") || id.includes("..")) return "";
+  return id;
 }
 
 function stateFilePath(hookInput) {
