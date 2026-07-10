@@ -209,7 +209,7 @@ export async function closeSessionRun(hookInput = {}) {
         },
       });
     }
-    await writeState(statePath, { ...state, status: "closed" });
+    await writeState(statePath, { ...state, status: closed ? "closed" : "degraded" });
   } catch {
     // The session-run driver must never break the host session.
   }
