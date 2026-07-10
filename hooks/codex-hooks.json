@@ -7,11 +7,7 @@
           {
             "type": "command",
             "command": "node \"${PLUGIN_ROOT}/src/bin/session-run-open.mjs\"",
-<<<<<<< HEAD
-            "timeout": 10,
-=======
             "timeout": 25,
->>>>>>> origin/main
             "statusMessage": "Opening Theorems Harness session run"
           }
         ]
@@ -23,11 +19,7 @@
           {
             "type": "command",
             "command": "node \"${PLUGIN_ROOT}/src/bin/session-run-close.mjs\"",
-<<<<<<< HEAD
-            "timeout": 10,
-=======
             "timeout": 25,
->>>>>>> origin/main
             "statusMessage": "Closing Theorems Harness session run"
           }
         ]

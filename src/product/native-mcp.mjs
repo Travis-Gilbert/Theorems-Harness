@@ -222,7 +222,7 @@ function remoteUrlFrom(input) {
   }
   // An explicit empty url is a deliberate opt-out (tests and callers rely on
   // deterministic degraded states), so only fall back when nothing was set.
-  if (hasExplicitRemoteUrl(input) || localFallbackSuppressed()) {
+  if (hasExplicitRemoteUrl(input) || hasExplicitRemoteUrlEnv() || localFallbackSuppressed()) {
     return "";
   }
   return DEFAULT_LOCAL_MCP_URL;
@@ -231,6 +231,10 @@ function remoteUrlFrom(input) {
 function hasExplicitRemoteUrl(input) {
   return [input.mcp_url, input.mcpUrl, input.remote_url, input.remoteUrl]
     .some((value) => value !== undefined);
+}
+
+function hasExplicitRemoteUrlEnv() {
+  return REMOTE_URL_ENV.some((key) => Object.prototype.hasOwnProperty.call(process.env, key));
 }
 
 export function localFallbackSuppressed() {

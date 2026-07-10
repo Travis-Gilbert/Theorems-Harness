@@ -2,10 +2,6 @@ import { localFallbackSuppressed } from "./native-mcp.mjs";
 
 const NATIVE_COMPOUND_ROUTE = "/harness/compound-engineering";
 const DEFAULT_LOCAL_HTTP_URL = "http://127.0.0.1:8380";
-<<<<<<< HEAD
-const DEFAULT_TENANT = "Travis-Gilbert";
-=======
->>>>>>> origin/main
 const REMOTE_URL_ENV = Object.freeze([
   "THEOREMS_HARNESS_HTTP_URL",
   "THEOREM_HARNESS_HTTP_URL",
@@ -159,11 +155,7 @@ function remoteUrlFrom(input) {
   }
   // An explicit empty url is a deliberate opt-out, so only fall back when
   // nothing was set and the local fallback is not suppressed.
-<<<<<<< HEAD
   if (hasExplicitRemoteUrl(input) || hasExplicitRemoteUrlEnv() || localFallbackSuppressed()) {
-=======
-  if (hasExplicitRemoteUrl(input) || localFallbackSuppressed()) {
->>>>>>> origin/main
     return "";
   }
   return DEFAULT_LOCAL_HTTP_URL;
@@ -172,17 +164,14 @@ function remoteUrlFrom(input) {
 function hasExplicitRemoteUrl(input) {
   return [input.http_url, input.httpUrl, input.remote_url, input.remoteUrl]
     .some((value) => value !== undefined);
-<<<<<<< HEAD
 }
 
 function hasExplicitRemoteUrlEnv() {
   return REMOTE_URL_ENV.some((key) => Object.prototype.hasOwnProperty.call(process.env, key));
-=======
->>>>>>> origin/main
 }
 
 function tenantFrom(input) {
-  const configured = String(
+  return String(
     input.tenant
       ?? input.tenant_slug
       ?? input.tenantSlug
@@ -193,10 +182,6 @@ function tenantFrom(input) {
       ?? process.env.RUSTYRED_THG_TENANT
       ?? "",
   ).trim();
-  if (configured || localFallbackSuppressed()) {
-    return configured;
-  }
-  return DEFAULT_TENANT;
 }
 
 function tokenFrom(input) {

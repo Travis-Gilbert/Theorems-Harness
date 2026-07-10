@@ -237,8 +237,6 @@ test("session-run driver degrades on native failure and later hooks no-op", asyn
   }
 });
 
-<<<<<<< HEAD
-=======
 test("session-run driver fails a partially opened native run", async () => {
   const captured = [];
   const server = createServer(async (request, response) => {
@@ -385,7 +383,6 @@ test("session-run driver keeps failed closes retryable", async () => {
   }
 });
 
->>>>>>> origin/main
 function mockEnv(port) {
   return {
     ...process.env,
