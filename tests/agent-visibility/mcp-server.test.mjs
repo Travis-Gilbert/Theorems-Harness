@@ -372,6 +372,27 @@ test("MCP facade degrades compound engineering when no remote harness is configu
   assert.equal(payload.product_tool, "compound_engineering");
 });
 
+test("MCP facade degrades compound engineering when tenant is not configured", async () => {
+  const response = await handleRpcMessage({
+    jsonrpc: "2.0",
+    id: 90,
+    method: "tools/call",
+    params: {
+      name: "compound_engineering",
+      arguments: {
+        remote_url: "http://127.0.0.1:1",
+        tenant: "",
+      },
+    },
+  });
+
+  const payload = JSON.parse(response.result.content[0].text);
+  assert.equal(payload.status, "degraded");
+  assert.equal(payload.reason, "tenant_unavailable");
+  assert.equal(payload.product_tool, "compound_engineering");
+  assert.equal(payload.requested.tenant, null);
+});
+
 test("MCP facade degrades reconstruct compose when no remote MCP is configured", async () => {
   const response = await handleRpcMessage({
     jsonrpc: "2.0",

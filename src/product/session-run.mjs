@@ -17,11 +17,26 @@ export async function openSessionRun(hookInput = {}) {
     const sessionId = sessionIdFrom(hookInput);
     const statePath = stateFilePath(hookInput);
     if (!sessionId || !statePath) return;
+<<<<<<< HEAD
+=======
+    const tenant = tenantSlug();
+    if (!tenant) return;
+>>>>>>> origin/main
 
     const runId = `harnessrun:cc-${sessionId}`;
     const task = String(hookInput.prompt ?? "").trim() || "claude-code session";
     const artifactId = `cc-context-${sessionId}`;
     const openedAt = new Date().toISOString();
+<<<<<<< HEAD
+=======
+    const baseState = {
+      run_id: runId,
+      status: "open",
+      opened_at: openedAt,
+      tenant_slug: tenant,
+      tool_events: 0,
+    };
+>>>>>>> origin/main
     const transitions = [
       {
         step: "run-created",
@@ -30,7 +45,11 @@ export async function openSessionRun(hookInput = {}) {
           task,
           actor: ACTOR,
           scope: {
+<<<<<<< HEAD
             tenant_slug: tenantSlug(),
+=======
+            tenant_slug: tenant,
+>>>>>>> origin/main
             surface: "claude-code",
             agent_host: "claude-code",
             workstream_id: "cc-session",
@@ -103,6 +122,7 @@ export async function openSessionRun(hookInput = {}) {
       },
     ];
 
+<<<<<<< HEAD
     for (const { step, type, payload } of transitions) {
       const accepted = await appendTransition({ type, runId, step, payload });
       if (!accepted) {
@@ -116,6 +136,42 @@ export async function openSessionRun(hookInput = {}) {
       opened_at: openedAt,
       tool_events: 0,
     });
+=======
+    let runCreated = false;
+    for (const { step, type, payload } of transitions) {
+      const accepted = await appendTransition({ type, runId, step, payload, tenant });
+      if (!accepted) {
+        if (!runCreated) {
+          await writeState(statePath, {
+            ...baseState,
+            status: "degraded",
+            failed_step: step,
+            failed_transition: type,
+          });
+          return;
+        }
+        const failed = await failSessionRun({
+          runId,
+          tenant,
+          step: "open-failed",
+          errorCode: "session_open_degraded",
+          message: `${type} was rejected while opening the Claude Code session run.`,
+        });
+        await writeState(statePath, {
+          ...baseState,
+          status: failed ? "failed" : "open",
+          open_degraded: true,
+          failed_step: step,
+          failed_transition: type,
+        });
+        return;
+      }
+      if (type === "RUN.CREATED") {
+        runCreated = true;
+      }
+    }
+    await writeState(statePath, baseState);
+>>>>>>> origin/main
   } catch {
     // The session-run driver must never break the host session.
   }
@@ -128,12 +184,21 @@ export async function recordSessionTool(hookInput = {}) {
     if (!statePath) return;
     const state = await readState(statePath);
     if (!state || state.status !== "open" || !state.run_id) return;
+<<<<<<< HEAD
+=======
+    const tenant = tenantFromState(state);
+    if (!tenant) return;
+>>>>>>> origin/main
 
     const count = Number(state.tool_events ?? 0) + 1;
     const toolName = String(hookInput.tool_name ?? "").trim() || "unknown";
     const accepted = await appendTransition({
       type: "SESSION.EVENT_RECORDED",
       runId: state.run_id,
+<<<<<<< HEAD
+=======
+      tenant,
+>>>>>>> origin/main
       idempotencyKey: `${state.run_id}:tool:${count}`,
       payload: {
         event_subtype: "tool_use",
@@ -141,7 +206,15 @@ export async function recordSessionTool(hookInput = {}) {
       },
     });
     if (!accepted) {
+<<<<<<< HEAD
       await writeState(statePath, { ...state, status: "degraded" });
+=======
+      await writeState(statePath, {
+        ...state,
+        status: "open",
+        tool_event_degraded_at: new Date().toISOString(),
+      });
+>>>>>>> origin/main
       return;
     }
     await writeState(statePath, { ...state, tool_events: count });
@@ -158,6 +231,11 @@ export async function closeSessionRun(hookInput = {}) {
     const state = await readState(statePath);
     if (!state || state.status !== "open" || !state.run_id) return;
     const runId = state.run_id;
+<<<<<<< HEAD
+=======
+    const tenant = tenantFromState(state);
+    if (!tenant) return;
+>>>>>>> origin/main
 
     let hasOutcome = false;
     const detail = await callNativeMcpTool({
@@ -165,7 +243,11 @@ export async function closeSessionRun(hookInput = {}) {
       nativeTool: "harness_run",
       productTool: "harness_run",
       requestId: REQUEST_ID,
+<<<<<<< HEAD
       arguments: { tenant: tenantSlug(), run_id: runId },
+=======
+      arguments: { tenant, run_id: runId },
+>>>>>>> origin/main
     });
     if (detail?.ok === true) {
       const run = detail.result?.run ?? detail.result?.detail?.run ?? null;
@@ -176,6 +258,10 @@ export async function closeSessionRun(hookInput = {}) {
       await appendTransition({
         type: "OUTCOME.RECORDED",
         runId,
+<<<<<<< HEAD
+=======
+        tenant,
+>>>>>>> origin/main
         step: "outcome-recorded",
         payload: {
           accepted: true,
@@ -192,12 +278,17 @@ export async function closeSessionRun(hookInput = {}) {
     const closed = await appendTransition({
       type: "RUN.CLOSED",
       runId,
+<<<<<<< HEAD
+=======
+      tenant,
+>>>>>>> origin/main
       step: "run-closed",
       payload: {
         summary: "Claude Code session closed by SessionEnd hook.",
         closed_by: "claude-code-hook",
       },
     });
+<<<<<<< HEAD
     if (!closed) {
       await appendTransition({
         type: "RUN.FAILED",
@@ -210,12 +301,64 @@ export async function closeSessionRun(hookInput = {}) {
       });
     }
     await writeState(statePath, { ...state, status: closed ? "closed" : "degraded" });
+=======
+    if (closed) {
+      await writeState(statePath, {
+        ...state,
+        status: "closed",
+        closed_at: new Date().toISOString(),
+      });
+      return;
+    }
+
+    const failed = await failSessionRun({
+      runId,
+      tenant,
+      step: "close-failed",
+      errorCode: "session_close_degraded",
+      message: "RUN.CLOSED was rejected by the harness run state machine.",
+    });
+    if (failed) {
+      await writeState(statePath, {
+        ...state,
+        status: "failed",
+        failed_at: new Date().toISOString(),
+      });
+      return;
+    }
+
+    await writeState(statePath, {
+      ...state,
+      status: "open",
+      close_degraded_at: new Date().toISOString(),
+      close_attempts: Number(state.close_attempts ?? 0) + 1,
+    });
+>>>>>>> origin/main
   } catch {
     // The session-run driver must never break the host session.
   }
 }
 
+<<<<<<< HEAD
 async function appendTransition({ type, runId, step, idempotencyKey, payload }) {
+=======
+async function failSessionRun({ runId, tenant, step, errorCode, message }) {
+  return appendTransition({
+    type: "RUN.FAILED",
+    runId,
+    tenant,
+    step,
+    payload: {
+      error_code: errorCode,
+      message,
+    },
+  });
+}
+
+async function appendTransition({ type, runId, step, idempotencyKey, payload, tenant }) {
+  const requestTenant = String(tenant ?? tenantSlug()).trim();
+  if (!requestTenant) return false;
+>>>>>>> origin/main
   const response = await callNativeMcpTool({
     input: { timeout_ms: TIMEOUT_MS },
     nativeTool: "harness_append_transition",
@@ -224,7 +367,11 @@ async function appendTransition({ type, runId, step, idempotencyKey, payload }) 
     arguments: {
       // Request-level tenant routes the write to the same tenant store the
       // compound-engineering read queries; scope.tenant_slug alone does not.
+<<<<<<< HEAD
       tenant: tenantSlug(),
+=======
+      tenant: requestTenant,
+>>>>>>> origin/main
       type,
       run_id: runId,
       actor: ACTOR,
@@ -264,12 +411,23 @@ function stateFilePath(hookInput) {
   return join(cwd, STATE_DIR, `session-run-${sessionId}.json`);
 }
 
+<<<<<<< HEAD
+=======
+function tenantFromState(state) {
+  return String(state?.tenant_slug ?? tenantSlug()).trim();
+}
+
+>>>>>>> origin/main
 function tenantSlug() {
   return String(
     process.env.THEOREM_HARNESS_TENANT
       ?? process.env.THEOREMS_HARNESS_TENANT
       ?? "",
+<<<<<<< HEAD
   ).trim() || "Travis-Gilbert";
+=======
+  ).trim();
+>>>>>>> origin/main
 }
 
 async function readState(path) {

@@ -122,6 +122,17 @@ test("Claude and Codex hook configs install lifecycle Compound Engineering trigg
       /session-run-tool\.mjs/,
       "PostToolUse records session run tool events",
     );
+<<<<<<< HEAD
+=======
+    assert.ok(
+      hookTimeouts(config.hooks.SessionStart).every((timeout) => timeout >= 25),
+      "SessionStart lifecycle hook has enough budget for sequential native appends",
+    );
+    assert.ok(
+      hookTimeouts(config.hooks.SessionEnd).every((timeout) => timeout >= 25),
+      "SessionEnd lifecycle hook has enough budget for close/fail retry appends",
+    );
+>>>>>>> origin/main
   }
 });
 
@@ -222,3 +233,10 @@ function readJson(path) {
 function hookCommands(entries) {
   return (entries ?? []).flatMap((entry) => (entry.hooks ?? []).map((hook) => hook.command ?? ""));
 }
+<<<<<<< HEAD
+=======
+
+function hookTimeouts(entries) {
+  return (entries ?? []).flatMap((entry) => (entry.hooks ?? []).map((hook) => Number(hook.timeout ?? 0)));
+}
+>>>>>>> origin/main

@@ -237,6 +237,155 @@ test("session-run driver degrades on native failure and later hooks no-op", asyn
   }
 });
 
+<<<<<<< HEAD
+=======
+test("session-run driver fails a partially opened native run", async () => {
+  const captured = [];
+  const server = createServer(async (request, response) => {
+    const body = JSON.parse(await readBody(request));
+    captured.push(body);
+    const type = body.params.arguments.type;
+    const result = type === "TASK.RESOLVED"
+      ? { ok: false, status: "rejected" }
+      : { ok: true, applied: true };
+    writeJson(response, {
+      jsonrpc: "2.0",
+      id: body.id,
+      result: {
+        content: [{ type: "text", text: JSON.stringify(result) }],
+      },
+    });
+  });
+  server.listen(0, "127.0.0.1");
+  await once(server, "listening");
+  const { port } = server.address();
+  const env = mockEnv(port);
+  const dir = await mkdtemp(join(tmpdir(), "theorems-harness-session-run-partial-"));
+
+  try {
+    const openResponse = await runHook("src/bin/session-run-open.mjs", {
+      hook_event_name: "SessionStart",
+      session_id: "t1",
+      cwd: dir,
+      prompt: "partial open",
+    }, env);
+    assert.equal(openResponse.continue, true);
+
+    assert.deepEqual(
+      captured.map((body) => body.params.arguments.type),
+      ["RUN.CREATED", "TASK.RESOLVED", "RUN.FAILED"],
+    );
+    assert.equal(captured[2].params.arguments.idempotency_key, "harnessrun:cc-t1:open-failed");
+    assert.deepEqual(captured[2].params.arguments.payload, {
+      error_code: "session_open_degraded",
+      message: "TASK.RESOLVED was rejected while opening the Claude Code session run.",
+    });
+
+    const state = await readState(dir, "t1");
+    assert.equal(state.status, "failed");
+    assert.equal(state.open_degraded, true);
+    assert.equal(state.failed_step, "task-resolved");
+    assert.equal(state.failed_transition, "TASK.RESOLVED");
+  } finally {
+    server.close();
+    await once(server, "close");
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("session-run driver keeps failed closes retryable", async () => {
+  const captured = [];
+  let rejectCloseTransitions = false;
+  const server = createServer(async (request, response) => {
+    const body = JSON.parse(await readBody(request));
+    captured.push(body);
+    if (body.params.name === "harness_run") {
+      writeJson(response, {
+        jsonrpc: "2.0",
+        id: body.id,
+        result: {
+          content: [{
+            type: "text",
+            text: JSON.stringify({ run: { run_id: body.params.arguments.run_id } }),
+          }],
+        },
+      });
+      return;
+    }
+
+    const type = body.params.arguments.type;
+    if (rejectCloseTransitions && (type === "RUN.CLOSED" || type === "RUN.FAILED")) {
+      response.writeHead(503, { "content-type": "application/json" });
+      response.end(JSON.stringify({ error: "temporary outage" }));
+      return;
+    }
+
+    writeJson(response, {
+      jsonrpc: "2.0",
+      id: body.id,
+      result: {
+        content: [{ type: "text", text: JSON.stringify({ ok: true, applied: true }) }],
+      },
+    });
+  });
+  server.listen(0, "127.0.0.1");
+  await once(server, "listening");
+  const { port } = server.address();
+  const env = mockEnv(port);
+  const dir = await mkdtemp(join(tmpdir(), "theorems-harness-session-run-close-retry-"));
+
+  try {
+    await runHook("src/bin/session-run-open.mjs", {
+      hook_event_name: "SessionStart",
+      session_id: "t1",
+      cwd: dir,
+      prompt: "retry close",
+    }, env);
+
+    rejectCloseTransitions = true;
+    captured.length = 0;
+    await runHook("src/bin/session-run-close.mjs", {
+      hook_event_name: "SessionEnd",
+      session_id: "t1",
+      cwd: dir,
+    }, env);
+
+    assert.deepEqual(
+      captured.map((body) => body.params.name === "harness_run"
+        ? "harness_run"
+        : body.params.arguments.type),
+      ["harness_run", "OUTCOME.RECORDED", "RUN.CLOSED", "RUN.FAILED"],
+    );
+    let state = await readState(dir, "t1");
+    assert.equal(state.status, "open");
+    assert.equal(state.close_attempts, 1);
+    assert.ok(state.close_degraded_at);
+
+    rejectCloseTransitions = false;
+    captured.length = 0;
+    await runHook("src/bin/session-run-close.mjs", {
+      hook_event_name: "SessionEnd",
+      session_id: "t1",
+      cwd: dir,
+    }, env);
+
+    assert.deepEqual(
+      captured.map((body) => body.params.name === "harness_run"
+        ? "harness_run"
+        : body.params.arguments.type),
+      ["harness_run", "OUTCOME.RECORDED", "RUN.CLOSED"],
+    );
+    state = await readState(dir, "t1");
+    assert.equal(state.status, "closed");
+    assert.ok(state.closed_at);
+  } finally {
+    server.close();
+    await once(server, "close");
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+>>>>>>> origin/main
 function mockEnv(port) {
   return {
     ...process.env,
