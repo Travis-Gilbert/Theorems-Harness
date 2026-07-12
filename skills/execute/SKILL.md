@@ -17,8 +17,9 @@ for users who explicitly want implementation.
 
 - Start from source code and current repo state, not from the plan alone.
 - When a durable Plan exists, it is the reconciliation target: claim tasks from
-  it, transition them, and let `.harness/checklist.json` stay a projection.
-  Reference the plan by id; do not re-encode its content elsewhere.
+  it, transition them, and let the session-bound
+  `.harness/checklists/<plan-slug>--<plan-id>.json` stay a projection. Reference
+  the plan by id; do not re-encode its content elsewhere.
 - Infer the smallest useful checklist when no plan exists. A one-off fix does
   not need a Plan node.
 - Keep the checklist alive, but right-size it. One tiny fix does not need a

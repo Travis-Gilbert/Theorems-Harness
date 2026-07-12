@@ -5,6 +5,7 @@ import test from "node:test";
 
 import {
   evaluateDependencyContract,
+  evaluatePlanContract,
   evaluateQueueContract,
   evaluateTenantContract,
   runRemoteDoctor,
@@ -82,6 +83,17 @@ test("tenant contract requires multiuser guardrails", () => {
   assert.deepEqual(result.missing_guards, ["rate_limits"]);
 });
 
+test("plan contract reports a stale native server explicitly", () => {
+  const result = evaluatePlanContract({
+    result: {
+      tools: [{ name: "harness_prepare" }],
+    },
+  });
+
+  assert.equal(result.status, "fail");
+  assert.equal(result.reason, "native_plan_missing");
+});
+
 test("remote doctor accepts a complete live probe contract", async () => {
   const server = createServer((request, response) => {
     writeJson(response, route(request.url));
@@ -98,6 +110,7 @@ test("remote doctor accepts a complete live probe contract", async () => {
 
     assert.equal(result.status, "ok");
     assert.equal(result.checks.find((check) => check.name === "remote-health").status, "ok");
+    assert.equal(result.checks.find((check) => check.name === "plan-contract").status, "ok");
     assert.equal(result.checks.find((check) => check.name === "queue-contract").status, "ok");
     assert.equal(result.checks.find((check) => check.name === "dependency-isolation").status, "ok");
     assert.equal(result.checks.find((check) => check.name === "tenant-isolation").status, "ok");
@@ -158,6 +171,15 @@ function route(url) {
         rate_limits: true,
         storage_namespaces: true,
         noisy_neighbor_protection: true,
+      },
+    };
+  }
+  if (url === "/mcp") {
+    return {
+      jsonrpc: "2.0",
+      id: "remote-doctor-tools",
+      result: {
+        tools: [{ name: "harness_prepare" }, { name: "plan" }],
       },
     };
   }

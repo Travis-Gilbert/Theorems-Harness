@@ -25,6 +25,9 @@ The product package installs as `theorems-harness-product`, not
 the workflow/control-plane pack for planning, execution, coordination, and
 reporting. This package is the product facade: Data API, reconstruction, index,
 capability visibility, hooks, and the local MCP membrane over Theorem/RustyRed.
+The membrane exposes the native `plan` verb by name and the remote doctor fails
+with `native_plan_missing` when a deployed RustyRed server has drifted behind
+the planning contract.
 
 Claude Code and Codex both discover the root `.mcp.json` when the plugin is
 enabled. The MCP launcher therefore resolves the plugin root through

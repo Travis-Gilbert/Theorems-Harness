@@ -63,6 +63,7 @@ test("MCP facade lists product tools", async () => {
   assert.equal(response.result.tools.some((tool) => tool.name === "harness_append_transition"), true);
   assert.equal(response.result.tools.some((tool) => tool.name === "composed_agent_run"), true);
   assert.equal(response.result.tools.some((tool) => tool.name === "multihead_run"), true);
+  assert.equal(response.result.tools.some((tool) => tool.name === "plan"), true);
   assert.equal(response.result.tools.some((tool) => tool.name === "spawn_session"), true);
   assert.equal(response.result.tools.some((tool) => tool.name === "reverse_engineer_compose"), false);
   assert.equal(response.result.tools.some((tool) => tool.name === "reconstruct_binary"), false);
@@ -1418,6 +1419,14 @@ test("MCP facade proxies run-lifecycle product tools to native MCP", async () =>
       arguments: {
         action: "status",
         run_id: "multihead:demo",
+      },
+    },
+    {
+      name: "plan",
+      arguments: {
+        action: "query",
+        plan_id: "plan:demo",
+        query: "progress",
       },
     },
     {
