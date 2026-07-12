@@ -254,9 +254,11 @@ The plugin hook layer makes the highest-risk harness disciplines deterministic:
 
 - `SessionStart` and build-shaped `UserPromptSubmit` events inject the ambition
   frame so plans do not shrink the request before execution begins.
-- Handoff-shaped prompts emit `.harness/checklist.json` as a projection of the
-  plan; the hook still mirrors it into a coordination record only until the
-  Stop gate reads the plan substrate directly. The plan is the contract.
+- Handoff-shaped prompts emit a session-bound
+  `.harness/checklists/<plan-slug>--<plan-id>.json` projection; parallel sessions
+  resolve only their own binding. The hook still mirrors it into a coordination
+  record only until the Stop gate reads the plan substrate directly. The plan
+  is the contract; `.harness/checklist.json` is only a legacy fallback.
 - `Stop` blocks completion only while checklist items remain unresolved without
   verification evidence or a concrete deferral reason.
 - `PostToolUse` records action, context, and coordination events without
