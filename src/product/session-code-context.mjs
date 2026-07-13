@@ -1,6 +1,6 @@
 import { execFile as execFileCallback, spawn } from "node:child_process";
 import { createHash } from "node:crypto";
-import { mkdirSync } from "node:fs";
+import { mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { mkdir, rename, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { basename, dirname, join } from "node:path";
@@ -10,7 +10,7 @@ import { promisify } from "node:util";
 import { callNativeMcpTool } from "./native-mcp.mjs";
 
 const execFile = promisify(execFileCallback);
-const DEFAULT_REMOTE_MCP_URL = "https://rustyredcore-theorem-production.up.railway.app/mcp";
+const DEFAULT_REMOTE_MCP_URL = "http://127.0.0.1:8380/mcp";
 const DEFAULT_BUDGET_TOKENS = 2_000;
 const SUBMIT_CHILD = fileURLToPath(new URL("../bin/session-code-context-submit.mjs", import.meta.url));
 
@@ -130,9 +130,13 @@ export async function submitCodeContext(submission, options = {}) {
     // The failed receipt below remains retryable and never certifies indexing.
   }
 
-  const accepted = payload.submitted === true
-    || ["queued", "submitted", "running"].includes(String(payload.state ?? ""))
-    || (payload.status === "ok" && String(payload.job_id ?? "") !== "");
+  const jobId = String(payload.job_id ?? payload.job?.id ?? "").trim();
+  const state = String(
+    payload.state ?? payload.status ?? payload.job?.state ?? payload.job?.status ?? "submitted",
+  );
+  const accepted = jobId !== ""
+    || payload.submitted === true
+    || ["queued", "submitted", "running"].includes(state);
   const receipt = {
     schema_version: 2,
     repo_id: submission.repoId,
@@ -143,8 +147,8 @@ export async function submitCodeContext(submission, options = {}) {
       status: accepted ? "accepted" : "failed",
       submitted_at: submittedAt,
       ...(accepted ? {
-        job_id: String(payload.job_id ?? payload.job?.id ?? ""),
-        state: String(payload.state ?? payload.job?.state ?? "submitted"),
+        job_id: jobId,
+        state,
       } : {}),
     },
     certifies_indexed: false,
@@ -176,15 +180,49 @@ export function normalizeCodePayload(value) {
 
 export function claimSubmission({ env = process.env, tenant, sessionId, repoId, sha }) {
   if (!sessionId) return true;
-  const bucket = String(env.THEOREM_CODE_CONTEXT_CLAIM_BUCKET ?? Math.floor(Date.now() / 30_000));
+  const now = positiveInteger(env.THEOREM_CODE_CONTEXT_NOW_EPOCH, Math.floor(Date.now() / 1_000));
+  const ttl = positiveInteger(env.THEOREM_CODE_CONTEXT_CLAIM_TTL_SECONDS, 30);
   const root = String(env.THEOREM_CODE_CONTEXT_CLAIM_ROOT ?? join(tmpdir(), "theorem-code-context-claims"));
   const key = createHash("sha256")
-    .update(`${tenant}\n${sessionId}\n${repoId}\n${sha}\n${bucket}\n`)
+    .update(`${tenant}\n${sessionId}\n${repoId}\n${sha}\n`)
     .digest("hex");
+  const claimDirectory = join(root, key);
+  const expiryPath = join(claimDirectory, "expires_at");
+  const expiresAt = now + ttl;
+
+  try {
+    mkdirSync(root, { recursive: true });
+  } catch {
+    return false;
+  }
+
   try {
     // mkdir is the cross-process compare-and-set shared with the shell plugin.
-    mkdirSync(root, { recursive: true });
-    mkdirSync(join(root, key));
+    mkdirSync(claimDirectory);
+  } catch (error) {
+    if (error?.code !== "EEXIST") return false;
+    return reclaimExpiredClaim({ claimDirectory, expiryPath, expiresAt, now });
+  }
+
+  try {
+    writeFileSync(expiryPath, `${expiresAt}\n`, { mode: 0o600 });
+    return true;
+  } catch {
+    rmSync(claimDirectory, { recursive: true, force: true });
+    return false;
+  }
+}
+
+function reclaimExpiredClaim({ claimDirectory, expiryPath, expiresAt, now }) {
+  try {
+    const currentExpiry = Number.parseInt(readFileSync(expiryPath, "utf8").trim(), 10);
+    if (!Number.isSafeInteger(currentExpiry) || currentExpiry > now) return false;
+
+    const staleDirectory = `${claimDirectory}.expired.${process.pid}.${Math.random().toString(16).slice(2)}`;
+    renameSync(claimDirectory, staleDirectory);
+    rmSync(staleDirectory, { recursive: true, force: true });
+    mkdirSync(claimDirectory);
+    writeFileSync(expiryPath, `${expiresAt}\n`, { mode: 0o600 });
     return true;
   } catch {
     return false;
@@ -252,9 +290,10 @@ async function writeReceipt(path, receipt) {
   await rename(temporaryPath, path);
 }
 
-function resolveTenant(env) {
+export function resolveTenant(env) {
   return String(
     env.THEOREM_TENANT_ID
+      ?? env.THEOREM_HARNESS_TENANT
       ?? env.THEOREMS_HARNESS_TENANT
       ?? env.RUSTYRED_THG_TENANT
       ?? env.THEOREM_CONTEXT_TENANT_SLUG
@@ -271,11 +310,14 @@ function codeContextIsManaged(env) {
   return ["1", "true", "yes", "installed", "theorem"].includes(codeContextOwner(env));
 }
 
-function remoteMcpUrl(env) {
+export function remoteMcpUrl(env) {
   return String(
-    env.THEOREM_MCP_URL
+    env.THEOREMS_HARNESS_MCP_URL
       ?? env.THEOREM_HARNESS_MCP_URL
-      ?? env.THEOREMS_HARNESS_MCP_URL
+      ?? env.THEOREM_MCP_URL
+      ?? env.THEOREMS_HARNESS_REMOTE_URL
+      ?? env.THEOREM_HARNESS_REMOTE_URL
+      ?? env.THEOREM_REMOTE_URL
       ?? env.RUSTYRED_THG_MCP_URL
       ?? DEFAULT_REMOTE_MCP_URL,
   ).trim();

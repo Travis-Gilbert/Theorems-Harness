@@ -7,6 +7,8 @@ import test from "node:test";
 import {
   claimSubmission,
   normalizeCodePayload,
+  remoteMcpUrl,
+  resolveTenant,
   sessionCodeContext,
   submitCodeContext,
 } from "../../src/product/session-code-context.mjs";
@@ -99,7 +101,36 @@ test("failed submission receipt remains retryable and never certifies ingestion"
   }
 });
 
-test("same session-entry claim deduplicates co-installed plugins and later bucket retries", async () => {
+test("job identity alone acknowledges direct and nested submission responses", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "session-code-context-job-test-"));
+  const submission = {
+    tenant: "Travis-Gilbert",
+    operation: "ingest",
+    repoId: "private-repository",
+    repoUrl: REPO_URL,
+    sha: HEAD,
+    manifestPath: join(directory, ".harness", "code-kg-manifest.json"),
+  };
+
+  try {
+    const direct = await submitCodeContext(submission, {
+      callNative: async () => ({ job_id: "job-direct" }),
+    });
+    assert.equal(direct.submission.status, "accepted");
+    assert.equal(direct.submission.job_id, "job-direct");
+
+    const nested = await submitCodeContext(submission, {
+      callNative: async () => ({ job: { id: "job-nested", status: "queued" } }),
+    });
+    assert.equal(nested.submission.status, "accepted");
+    assert.equal(nested.submission.job_id, "job-nested");
+    assert.equal(nested.submission.state, "queued");
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
+test("same session-entry claim deduplicates before expiry and retries after expiry", async () => {
   const root = await mkdtemp(join(tmpdir(), "session-code-claims-test-"));
   const base = {
     tenant: "Travis-Gilbert",
@@ -109,9 +140,9 @@ test("same session-entry claim deduplicates co-installed plugins and later bucke
   };
 
   try {
-    assert.equal(claimSubmission({ ...base, env: claimEnv(root, "entry-one") }), true);
-    assert.equal(claimSubmission({ ...base, env: claimEnv(root, "entry-one") }), false);
-    assert.equal(claimSubmission({ ...base, env: claimEnv(root, "entry-two") }), true);
+    assert.equal(claimSubmission({ ...base, env: claimEnv(root, 1_000) }), true);
+    assert.equal(claimSubmission({ ...base, env: claimEnv(root, 1_029) }), false);
+    assert.equal(claimSubmission({ ...base, env: claimEnv(root, 1_031) }), true);
   } finally {
     await rm(root, { recursive: true, force: true });
   }
@@ -142,6 +173,27 @@ test("response normalization accepts direct, content-text, structured, and neste
   assert.deepEqual(normalizeCodePayload({ result: { output: status } }), status);
 });
 
+test("tenant and remote URL resolution preserve legacy aliases and local default", () => {
+  assert.equal(resolveTenant({ THEOREM_HARNESS_TENANT: "legacy-tenant" }), "legacy-tenant");
+  assert.equal(resolveTenant({
+    THEOREM_HARNESS_TENANT: "singular",
+    THEOREMS_HARNESS_TENANT: "plural",
+  }), "singular");
+  assert.equal(remoteMcpUrl({}), "http://127.0.0.1:8380/mcp");
+  assert.equal(
+    remoteMcpUrl({ THEOREMS_HARNESS_REMOTE_URL: "https://example.test/theorems" }),
+    "https://example.test/theorems",
+  );
+  assert.equal(
+    remoteMcpUrl({ THEOREM_HARNESS_REMOTE_URL: "https://example.test/harness" }),
+    "https://example.test/harness",
+  );
+  assert.equal(
+    remoteMcpUrl({ THEOREM_REMOTE_URL: "https://example.test/theorem" }),
+    "https://example.test/theorem",
+  );
+});
+
 test("status failure fails open without guessing that ingest is required", async () => {
   const scheduled = [];
   const result = await sessionCodeContext(hookInput("failed-status"), lifecycleOptions({
@@ -167,7 +219,6 @@ function lifecycleOptions({ status, pack = {}, calls = [], scheduled = [] }) {
     env: {
       THEOREM_TENANT_ID: "Travis-Gilbert",
       THEOREM_CODE_CONTEXT_OWNER: "plugin",
-      THEOREM_CODE_CONTEXT_CLAIM_BUCKET: "test-entry",
     },
     runGit: async (_cwd, args) => {
       const command = args.join(" ");
@@ -185,9 +236,10 @@ function lifecycleOptions({ status, pack = {}, calls = [], scheduled = [] }) {
   };
 }
 
-function claimEnv(root, bucket) {
+function claimEnv(root, now) {
   return {
     THEOREM_CODE_CONTEXT_CLAIM_ROOT: root,
-    THEOREM_CODE_CONTEXT_CLAIM_BUCKET: bucket,
+    THEOREM_CODE_CONTEXT_NOW_EPOCH: String(now),
+    THEOREM_CODE_CONTEXT_CLAIM_TTL_SECONDS: "30",
   };
 }

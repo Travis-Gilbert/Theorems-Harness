@@ -15,7 +15,7 @@
             "type": "command",
             "shell": "bash",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/src/bin/session-code-context.mjs\"",
-            "timeout": 10,
+            "timeout": 15,
             "statusMessage": "Loading codebase context"
           }
         ]

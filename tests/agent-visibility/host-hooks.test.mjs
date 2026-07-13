@@ -128,7 +128,7 @@ test("Claude and Codex hook configs install lifecycle Compound Engineering trigg
       "PostToolUse records session run tool events",
     );
     assert.ok(hookTimeoutFor(config.hooks.SessionStart, /session-run-open\.mjs/) >= 25);
-    assert.ok(hookTimeoutFor(config.hooks.SessionStart, /session-code-context\.mjs/) >= 10);
+    assert.ok(hookTimeoutFor(config.hooks.SessionStart, /session-code-context\.mjs/) >= 15);
     assert.ok(
       hookTimeouts(config.hooks.SessionEnd).every((timeout) => timeout >= 25),
       "SessionEnd lifecycle hook has enough budget for close/fail retry appends",
