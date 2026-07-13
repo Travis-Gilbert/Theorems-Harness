@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "theorems-harness-marketplace",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "Claude Code marketplace entry for Theorems Harness: capability manifests, host hooks, cached skills, and the MCP facade.",
   "owner": {
     "name": "Travis Gilbert",
@@ -10,7 +10,7 @@
   "plugins": [
     {
       "name": "theorems-harness-product",
-      "version": "0.1.8",
+      "version": "0.1.9",
       "source": "./",
       "description": "Agent delivery surface for Theorems Harness capabilities, hooks, and MCP facade.",
       "author": {

@@ -10,6 +10,13 @@
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/src/bin/session-run-open.mjs\"",
             "timeout": 25,
             "statusMessage": "Opening Theorems Harness session run"
+          },
+          {
+            "type": "command",
+            "shell": "bash",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/src/bin/session-code-context.mjs\"",
+            "timeout": 10,
+            "statusMessage": "Loading codebase context"
           }
         ]
       }
