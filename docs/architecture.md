@@ -87,6 +87,13 @@ to native `code_ingest`. `understand_code`, `impact`, and `oracle` keep their
 own flat names because agents look for those verbs directly, but they still
 route to native Theorem tools.
 
+SessionStart follows the same split. A bounded `kg_status` read decides whether
+to enqueue `code_ingest` asynchronously or read `context_pack`; only a matching
+server-side indexed SHA may take the context-pack branch. Local manifests are
+submission receipts, not freshness state. `THEOREM_CODE_CONTEXT_OWNER=installed`
+declares the installed Theorem hook as canonical, and a shared atomic claim
+deduplicates plugin submissions when no external owner is configured.
+
 `THEOREMS_HARNESS_REMOTE_READY=1` is the product-side readiness gate for remote
 abilities without a local fallback. Leave it unset when the MCP registration,
 gateway, token, or runtime is unavailable; the capability compiler will report

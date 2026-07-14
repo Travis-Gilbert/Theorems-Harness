@@ -61,7 +61,7 @@ One tool, `plan`, with an `action` argument:
 | `prove` | Run a task's declared proof command and persist the receipt. |
 | `spawn_verify` / `submit_verify` | Open and submit the adversarial verify sibling for a task. |
 | `render` | Emit the deterministic projection (markdown + JSON contract). |
-| `import` | Lift a legacy `.harness/checklist.json` into a Plan. |
+| `import` | Lift a legacy checklist projection into a Plan. |
 | `query` | Bounded canned queries: `next_actionable`, `frontier`, `blocked_set`, `progress`, `stale_claims`, `verify_debt`. |
 | `what_changed` | Events since an anchor version, for cold resume. |
 | `analyze` / `converge` | Read structural findings and convergence state for the re-plan signal. |
@@ -126,10 +126,12 @@ enumerated deliverable list:
   HANDOFF doc, its Build Table compiles to the plan definition: the markdown
   stays the human-readable view, the plan is the executable truth. PR #177
   demonstrated this on itself by checking in its own plan definition.
-- Write `.harness/checklist.json` as a projection of the plan (`plan render`),
-  kept only until the Stop hook reads the substrate directly. The file mirrors
-  the plan; the plan never mirrors the file. If you edit scope, edit the plan
-  and re-render.
+- Write `.harness/checklists/<plan-slug>--<plan-id>.json` as a projection of the
+  plan (`plan render`), kept only until the Stop hook reads the substrate
+  directly. Bind the projection to the active hook session so parallel plans
+  never share an implicit current checklist. The file mirrors the plan; the
+  plan never mirrors the file. If you edit scope, edit the plan and re-render.
+  `.harness/checklist.json` remains a legacy fallback for unbound projects.
 - Reference plans by id and digest everywhere else. Never re-encode plan
   content into coordination records, messages, or reflections — the substrate
   injects a room-bound plan digest automatically and rejects digest
@@ -189,8 +191,8 @@ The template is a tool, not a contract. Use only the sections the work needs.
   are for prose; the substrate id is the key.
 - Re-encoding plan content into coordination records, messages, reflections,
   or continuity packs. Reference by id/digest.
-- Editing `.harness/checklist.json` as if it were the source of truth. It is a
-  render target.
+- Editing a `.harness/checklists/*.json` projection as if it were the source of
+  truth. It is a render target.
 - Hiding deferred work behind elegant prose.
 - Calling validation "TBD" — declare the proof command at task creation
   instead, so the engine can hold the line.

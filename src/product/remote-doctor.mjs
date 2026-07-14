@@ -2,6 +2,7 @@ const WELL_KNOWN_PATH = "/.well-known/theorems-harness/doctor.json";
 const DEFAULT_PROBES = Object.freeze({
   health: "/health",
   ready: "/ready",
+  mcp: "/mcp",
   queue: "/diagnostics/queue",
   dependencies: "/diagnostics/dependencies",
   tenants: "/diagnostics/tenants",
@@ -75,6 +76,9 @@ export async function runRemoteDoctor(input = {}) {
 
   await addHealthCheck(checks, "remote-health", remoteUrl, endpoints.health, input, timeoutMs);
   await addReadyCheck(checks, "remote-readiness", remoteUrl, endpoints.ready, input, timeoutMs);
+
+  const planProbe = await probeMcpTools(remoteUrl, endpoints.mcp, { ...input, timeoutMs });
+  addProbeEvaluation(checks, "plan-contract", planProbe, evaluatePlanContract);
 
   const queueProbe = await probeJson(remoteUrl, endpoints.queue, { ...input, timeoutMs });
   addProbeEvaluation(checks, "queue-contract", queueProbe, evaluateQueueContract);
@@ -185,6 +189,18 @@ export function evaluateTenantContract(payload = {}) {
   };
 }
 
+export function evaluatePlanContract(payload = {}) {
+  const tools = payload.result?.tools ?? payload.tools ?? [];
+  const advertised = Array.isArray(tools)
+    && tools.some((tool) => String(tool?.name ?? "") === "plan");
+  return {
+    status: advertised ? "ok" : "fail",
+    reason: advertised ? undefined : "native_plan_missing",
+    advertised,
+    summary: "The native MCP surface must advertise the durable plan verb used by Planning-Theorem.",
+  };
+}
+
 async function addHealthCheck(checks, name, remoteUrl, path, input, timeoutMs) {
   const probe = await probeJson(remoteUrl, path, { ...input, timeoutMs });
   if (!probe.ok) {
@@ -239,6 +255,49 @@ async function probeJson(remoteUrl, path, input = {}) {
     const body = parseJson(text);
     return {
       ok: acceptStatuses.has(response.status),
+      path,
+      http_status: response.status,
+      body,
+      text: body === null ? text : undefined,
+    };
+  } catch (caught) {
+    return {
+      ok: false,
+      path,
+      http_status: 0,
+      error: caught instanceof Error ? caught.message : String(caught),
+    };
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function probeMcpTools(remoteUrl, path, input = {}) {
+  const timeoutMs = Number(input.timeoutMs ?? input.timeout_ms ?? 2500);
+  const url = new URL(path, ensureTrailingSlash(remoteUrl));
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const headers = { "content-type": "application/json" };
+    const token = tokenFrom(input);
+    if (token) {
+      headers.authorization = `Bearer ${token}`;
+    }
+    const response = await fetch(url, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        id: "remote-doctor-tools",
+        method: "tools/list",
+        params: {},
+      }),
+      signal: controller.signal,
+    });
+    const text = await response.text();
+    const body = parseJson(text);
+    return {
+      ok: response.ok && body?.error === undefined,
       path,
       http_status: response.status,
       body,

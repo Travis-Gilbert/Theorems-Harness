@@ -25,12 +25,25 @@ The product package installs as `theorems-harness-product`, not
 the workflow/control-plane pack for planning, execution, coordination, and
 reporting. This package is the product facade: Data API, reconstruction, index,
 capability visibility, hooks, and the local MCP membrane over Theorem/RustyRed.
+The membrane exposes the native `plan` verb by name and the remote doctor fails
+with `native_plan_missing` when a deployed RustyRed server has drifted behind
+the planning contract.
 
 Claude Code and Codex both discover the root `.mcp.json` when the plugin is
 enabled. The MCP launcher therefore resolves the plugin root through
 `${CLAUDE_PLUGIN_ROOT}` or `${PLUGIN_ROOT}` before starting
 `src/mcp/server.mjs`, so the facade does not depend on the user's current shell
 directory.
+
+Both hosts also run the bounded `session-code-context` hook at SessionStart.
+It treats tenant-scoped server `kg_status` as the only freshness authority:
+unknown repositories enqueue `ingest`, changed indexed SHAs enqueue `reindex`,
+and a current indexed SHA reads `context_pack` without passing `repo_url`.
+Submission metadata in `.harness/code-kg-manifest.json` never certifies that
+indexing finished. Set `THEOREM_CODE_CONTEXT_OWNER=installed` when the canonical
+`~/.theorem/hooks/session_start.sh` is registered so co-installed plugins do not
+repeat that lifecycle; otherwise the product and workflow plugins share an
+atomic same-session submit claim.
 
 Theorem/RustyRed own:
 

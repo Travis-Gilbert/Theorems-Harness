@@ -37,6 +37,11 @@ If the code MCP surface is unavailable or the code KG has no manifest, report th
 structured degraded reason such as `remote_unavailable`, `contract_missing`, or
 `no_manifest` before falling back to local file inspection.
 
+For freshness questions, use tenant-scoped `kg_status`; never treat
+`.harness/code-kg-manifest.json` as proof that ingest/reindex completed. When
+`kg_status` returns a current indexed SHA, request `context_pack` without
+`repo_url` so the read cannot synchronously ensure or clone the repository.
+
 Return:
 
 - product tool used

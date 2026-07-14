@@ -1,6 +1,6 @@
 {
   "name": "theorems-harness-product",
-  "version": "0.1.7",
+  "version": "0.1.9",
   "description": "Agent delivery surface for Theorems Harness capabilities, hooks, and MCP facade.",
   "author": {
     "name": "Travis Gilbert"
@@ -31,6 +31,7 @@
     "defaultPrompt": [
       "Use Theorems Harness Product for Data API, grep, reconstruction, index context, capability visibility, and product MCP diagnostics.",
       "Keep the broader theorems-harness workflow pack as the planning/execution/coordination control plane; this product package is the exposed facade for concrete substrate-backed tools.",
+      "Use the named plan tool for durable planning and treat native_plan_missing as a deployment or version-skew fault.",
       "When grep, semantic_grep, memory_grep, mgrep, reconstruct, compute_code, query_data, retrieve_memory, index_context, or index_spine are available, prefer those stable product names over lower-level native Theorem/RustyRed tool names.",
       "If a product tool degrades, report the structured reason such as remote_unavailable or contract_missing instead of silently falling back."
     ]
