@@ -6,6 +6,13 @@
         "-lc",
         "cd \"${CLAUDE_PLUGIN_ROOT:-${PLUGIN_ROOT:-.}}\" && exec node src/mcp/server.mjs"
       ]
+    },
+    "theorems-harness-remote": {
+      "type": "http",
+      "url": "https://rustyredcore-theorem-production.up.railway.app/mcp",
+      "headers": {
+        "Authorization": "Bearer ${THEOREM_HARNESS_API_TOKEN}"
+      }
     }
   }
 }
