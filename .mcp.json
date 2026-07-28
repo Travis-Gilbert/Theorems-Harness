@@ -9,7 +9,7 @@
     },
     "theorems-harness-remote": {
       "type": "http",
-      "url": "https://rustyredcore-theorem-production.up.railway.app/mcp",
+      "url": "https://api.theoremharness.com/mcp",
       "headers": {
         "Authorization": "Bearer ${THEOREM_HARNESS_API_TOKEN}"
       }

@@ -140,11 +140,13 @@ test("host package uses product identity and portable MCP launch", () => {
   const claudePlugin = readJson(".claude-plugin/plugin.json");
   const codexPlugin = readJson(".codex-plugin/plugin.json");
   const localMcp = readJson(".mcp.json");
+  const packageManifest = readJson("package.json");
 
   assert.equal(claudePlugin.name, "theorems-harness-product");
   assert.equal(codexPlugin.name, "theorems-harness-product");
-  assert.equal(claudePlugin.version, "0.1.9");
-  assert.equal(codexPlugin.version, "0.1.9");
+  assert.equal(claudePlugin.version, "0.1.10");
+  assert.equal(codexPlugin.version, "0.1.10");
+  assert.equal(packageManifest.version, "0.1.10");
   assert.equal(claudePlugin.hooks, undefined);
   assert.equal(claudePlugin.skills, undefined);
   assert.deepEqual(claudePlugin.commands, PRODUCT_COMMANDS);
@@ -159,15 +161,27 @@ test("host package uses product identity and portable MCP launch", () => {
   });
 });
 
+test("host package routes remote MCP through the OAuth serving tier", () => {
+  const localMcp = readJson(".mcp.json");
+
+  assert.deepEqual(localMcp.mcpServers["theorems-harness-remote"], {
+    type: "http",
+    url: "https://api.theoremharness.com/mcp",
+    headers: {
+      Authorization: "Bearer ${THEOREM_HARNESS_API_TOKEN}",
+    },
+  });
+});
+
 test("marketplace manifests advertise the product plugin without colliding with workflow harness", () => {
   const claudeMarketplace = readJson(".claude-plugin/marketplace.json");
   const codexMarketplace = readJson(".codex-plugin/marketplace.json");
 
   for (const marketplace of [claudeMarketplace, codexMarketplace]) {
-    assert.equal(marketplace.version, "0.1.9");
+    assert.equal(marketplace.version, "0.1.10");
     assert.equal(marketplace.plugins.length, 1);
     assert.equal(marketplace.plugins[0].name, "theorems-harness-product");
-    assert.equal(marketplace.plugins[0].version, "0.1.9");
+    assert.equal(marketplace.plugins[0].version, "0.1.10");
     assert.notEqual(marketplace.plugins[0].name, "theorems-harness");
   }
 });
