@@ -1,203 +1,83 @@
 ---
 name: planning-theorem
-description: The Harness planning capability, backed by the durable plan substrate. Use when the task needs stable acceptance criteria, a multi-session plan, a migration shape, or a plan worth handing to another agent. Reachable as /harness mode=plan or, for users who explicitly want planning, the /planning-theorem compatibility command.
+description: Chart a fuzzy ask into a durable Plan on the Theorem substrate, then work its decision frontier one decision per session. Use when an idea arrives wrapped in fog, when work spans more than one session or head, when acceptance criteria are not yet locked, when the user asks for a plan, map, spec, migration, or handoff, or when a failed execution needs a re-plan. Emits a plan id that /execute claims from; dispatches decisions to /research-theorem and /prototype-theorem.
 ---
 
-# Planning-Theorem
+# Planning Theorem
 
-Planning is the Harness capability for turning a fuzzy ask into a durable Plan
-another agent can execute against. It is not a license to defer real work; it
-is the discipline of making acceptance criteria honest before code runs.
+Planning finds the way to a destination; it does not walk it. The plan is a durable graph on the substrate that nobody owns and everything acts on: the plan holds the sessions, never the reverse. This skill is the hub. It charts the map and works the decision frontier; resolvers do the resolving, and /execute walks the route. The pull to start implementing is the signal that the map has reached its edge: stop and hand off the plan id.
 
-`plan create` is the canonical act. A plan lives on the graph substrate as a
-Plan node with task nodes, dependencies, transition rules, and a durable event
-log. Every file, table, or digest downstream of it is a projection: the file
-mirrors the plan; the plan never mirrors the file.
+## The three registers
 
-Prefer `/harness` (which routes to planning when the task signals warrant it).
-`/planning-theorem` remains a compatibility entrypoint for users who explicitly
-want a plan as the deliverable.
+Every piece of the work sits in exactly one register at any moment:
 
-## When To Plan
+- **Decided**: recorded with `assert_facts`. A decision lives in exactly one place; everything else gists and links by id.
+- **Fog**: in scope, headed at the destination, not yet sharp enough to be a task. The test is whether you can state the question precisely right now, not whether you can answer it now. Fog is never pre-sliced: one patch may graduate into several tasks or none.
+- **Out of scope**: ruled beyond the destination, closed with a reason via `close_goal`. It never graduates; it returns only if the destination is redrawn, and then as a fresh effort.
 
-Use this capability when at least one is true:
+The two cuts, kept sharp: fog vs task is precision of the question; fog vs out-of-scope is scope.
 
-- the task spans more than one bounded slice
-- acceptance criteria are not yet locked
-- the work crosses multiple files, modules, or systems and a plan will
-  reduce risk
-- a future session will pick up where this one stops
-- a UI visual surface needs Vision Delta + Do Not Downgrade gating before code
-- the user asked for a plan, spec, migration, retrofit, or handoff artifact
+## The map is the plan, projected
 
-Do not plan when the work is a clear one-file fix, a typo, a renamed variable,
-or anything the user obviously meant to be executed now. Right-size: a small
-task needs a few internal checklist lines, not a Plan node; a launch or
-migration needs the full substrate contract.
+The Plan node is the truth. Everything readable is a projection of it: the markdown render, the checklist JSON, and the mermaid DAG. The mermaid source is the transportable form of the map: paste it into an issue, a chat, a doc, and it renders anywhere. Its first line carries the anchor as a comment, `%% plan:<id> digest:<hash>`, so any copy identifies its source. Projections are read and regenerated, never edited; editing a projection as though it were the plan is editing a screenshot.
 
-## Inputs
+## Live map
 
-Any of these are valid inputs:
+!`node "${CLAUDE_PLUGIN_ROOT:-.}/src/bin/theorems-harness.mjs" plan map $ARGUMENTS`
 
-- a user task in plain language
-- an existing SPEC, ADR, or design doc
-- a prior plan that needs revision
-- a failed execution that needs a re-plan — read the plan's bounded replay
-  (`plan` action `replay`, or `harness_replay`) before re-planning; the replay
-  is the record of what happened, not the head's memory of it. Replay first,
-  re-plan second.
-- a research brief or theorem brief that resolved the open questions
+If the block above shows a literal command rather than a rendered map, this surface does not run injection: call `plan render` and `plan query` (`frontier`, `progress`) yourself before proceeding, and read the mermaid source from the render.
 
-## Plan Verbs (grounded in the Theorem MCP `plan` tool)
+## Chart
 
-One tool, `plan`, with an `action` argument:
+Invoked with a loose idea. Charting is one session's work and hand-resolves nothing.
 
-| Action | Purpose |
-|---|---|
-| `create` | Mint the Plan node, its tasks, and their substrate ids. The canonical act. |
-| `add_task` / `refine` | Add a task; split a claimed task into children that retain plan membership. |
-| `claim` | Acquire or release a leased claim on a plan task. |
-| `transition` | Move a task (`patch_proposed`, `verifying`, `done`, `failed`, `pending` also work as direct actions). Refusals are durable, replay-visible events. |
-| `prove` | Run a task's declared proof command and persist the receipt. |
-| `spawn_verify` / `submit_verify` | Open and submit the adversarial verify sibling for a task. |
-| `render` | Emit the deterministic projection (markdown + JSON contract). |
-| `import` | Lift a legacy checklist projection into a Plan. |
-| `query` | Bounded canned queries: `next_actionable`, `frontier`, `blocked_set`, `progress`, `stale_claims`, `verify_debt`. |
-| `what_changed` | Events since an anchor version, for cold resume. |
-| `analyze` / `converge` | Read structural findings and convergence state for the re-plan signal. |
-| `replay` | Bounded page of transition and refusal events (also exposed as `harness_replay`). |
+1. **Name the destination** with `create_goal` before anything else; without a fixed edge there is no test for out-of-scope and fog expands forever. Done when reaching the end can be stated in one or two lines across user-visible, system, data, and operational terms.
+2. **Fan breadth-first with the human**: surface the open decisions, the first takeable steps, and the fog, across the whole space rather than deep on any thread. If this surfaces no fog and the work fits one session, there is no Plan node: hand the work to /execute and stop. Done when every known question is either sharp enough to be a task or written down as fog.
+3. **Chart against live source, not historical specs**: `plan create` with only the tasks specifiable now, each grounded in a real file path, test seam, or runtime surface, wired with dependency edges. Type each task `decision` or `build`, and `hitl` or `afk`. Declare each task's proof command and the class of evidence that proof produces at creation. The substrate does its part on create: acceptance criteria compile to obligations, and the unknowns harvest runs over the indexed repo; plan lock refuses on an uncovered spec section or an unbudgeted unknown, so treat a lock refusal as a finding about the map, never as an obstacle to route around. Done when `plan query frontier` returns at least one takeable task and the plan locks clean.
+4. **Fire the research fan-out**: dispatch /research-theorem for each `decision.afk` task, in parallel. Fan-out is for open-world research; the graph carries the findings back, so no session waits on another. Done when every research task is dispatched or consciously held.
+5. **Emit the map and stop**: `plan render` for the markdown and mermaid projections, then hand the plan id and digest to the user. Done when the id is in the user's hands and nothing has been implemented.
 
-Ground any further signatures in `docs/site/reference/mcp-tools.md` of the
-Theorem repo, not in prose summaries of it.
+## Work the frontier
 
-## Operating Posture
+Invoked with a plan id, and optionally a task. Never resolve more than one decision per session; research tasks running AFK in parallel are the one exception.
 
-- Ground every task in a real file path, test seam, or runtime surface. No
-  abstract verbs.
-- Task ids are minted by the substrate at `plan create`. Keep human aliases
-  (`PT-001`) for readability in prose if you like, but the reconciliation key
-  across sessions and heads is always the substrate id.
-- Prefer vertical slices over horizontal staging. One real path beats a buffet
-  of maybe-paths.
-- Make validation, rollback, observability, and migration risk explicit per
-  task. Declare the proof command at task creation so the done transition can
-  enforce it.
-- At checkpoints, read `plan analyze` / `plan converge`. Refinement churn on
-  the same task is the re-plan signal, quantified instead of vibed. The old
-  instinct — third workaround in the same layer means re-plan — is now a
-  number you can read.
-- Surface unresolved decisions instead of smoothing them over.
-- Never produce wall-clock, compute, or cost estimates ("~2 hours", "~$5",
-  "Effort: S/M/L"). Predictions about future work are not part of a plan.
-- If the user said "MVP," honor it. Do NOT introduce "MVP" framing yourself.
-- If a spec is the source, every spec section must have at least one plan task
-  pointing at it. Zero coverage of a spec section is a planning bug, not a
-  scope decision.
-- Deferrals require explicit user consent. Surface candidate deferrals one at a
-  time with a one-sentence justification; do not batch them into a quiet
-  "non-goals" table at the end.
+1. **Enter through the map**: the live map above, or on cold resume `reenter`, then `what_changed` since the last known version, then `plan render` only if the full view is needed. Done when the frontier, the blocked set, and the open fog are in front of you.
+2. **Choose one decision task**: the user's named task, else the frontier decision the plan's own scores mark most fragile (a goal with a single derivation researches first). Claim it before any work; the claim is what lets concurrent sessions skip it. Done when the claim is held.
+3. **Resolve it by kind**, dispatching to the resolver the kind names (table below). A `hitl` task resolves only through live exchange; standing in for the human's side records an invented answer as decided and corrupts the plan silently. Done when the answer exists with the evidence class its claim requires.
+4. **Record and redraw**: `assert_facts` records the answer and the task transitions; `decompose` graduates whatever fog became specifiable, clearing that patch so it lives only as its new tasks; `replan_subtree` redraws what the answer invalidated; `close_goal` retires what the answer pushed past the destination. A failed or deviating transition fires the retraction lane on its own: the falsified assumption retracts, the report appends to the plan, and re-planning reads the surviving explanations plus the replay, never prose memory. Done when no resolved question appears in both the fact sheet and the fog.
+5. **Close the session**: re-render the projections, read `plan analyze` and `plan converge` at the checkpoint (refinement churn on one task is the re-plan signal as a number), and stop. When no fog remains and nothing is left to decide before someone builds, the map is done: hand the plan id to /execute.
 
-## Workflow
+## Resolvers
 
-1. Reconcile the request against the live repo: read the smallest relevant
-   source surface, not a pile of historical specs.
-2. Define the production goal in user-visible, system, data, and operational
-   terms.
-3. For UI visual work, define visual baseline, target references, Vision
-   Delta, and Do Not Downgrade criteria before locking the plan.
-4. `plan create` with codebase-grounded tasks, acceptance criteria,
-   dependencies, and proof commands. The substrate mints the ids.
-5. Render the file projection where the hook layer still needs it (see Plan
-   Contract below).
-6. Record explicit non-goals and deferrals only with surfaced consent.
-7. Execution reconciles mechanically, not by prose: heads claim from the plan
-   and move tasks through CLAIM -> PATCH -> VERIFY as task transitions. There
-   is nothing to define per-plan here anymore.
-8. If `handoff=spark` is requested, select the first bounded slice, define
-   write/validation scope, delegate it, and stay in-thread to review.
+| Task kind | Question shape | Resolver |
+|---|---|---|
+| `decision.afk` | A fact a decision waits on, findable in docs, code, or the graph | /research-theorem, backgrounded |
+| `decision.hitl` | How should it look or behave | /prototype-theorem, live with the human |
+| `decision.hitl` | A judgment call, tradeoff, or preference | Live exchange, one question at a time |
+| `decision.*` | The destination or a resolved decision calls for a specification | /spec-theorem, on the plan node |
+| `build.*` | Nothing to decide; the route is walked | /execute, with the plan id |
 
-## Plan Contract
+## Validation defaults
 
-The Plan is the board. When planning from a handoff, spec, migration note, or
-enumerated deliverable list:
+- `plan query progress` and `frontier` after create, to confirm the plan is workable rather than merely written.
+- `plan converge` and `plan analyze` at checkpoints.
+- Every task carries a declared proof command and the evidence class that proof produces.
+- Every section of a source spec maps to at least one task.
+- No resolved question appears in both the fact sheet and the fog.
+- `plan replay` before re-planning a failed execution: the replay is the record of what happened; a head's memory is not.
 
-- Compile the source into a plan definition via `plan create` (or `plan
-  import` when a legacy checklist file already exists). When the source is a
-  HANDOFF doc, its Build Table compiles to the plan definition: the markdown
-  stays the human-readable view, the plan is the executable truth. PR #177
-  demonstrated this on itself by checking in its own plan definition.
-- Write `.harness/checklists/<plan-slug>--<plan-id>.json` as a projection of the
-  plan (`plan render`), kept only until the Stop hook reads the substrate
-  directly. Bind the projection to the active hook session so parallel plans
-  never share an implicit current checklist. The file mirrors the plan; the
-  plan never mirrors the file. If you edit scope, edit the plan and re-render.
-  `.harness/checklist.json` remains a legacy fallback for unbound projects.
-- Reference plans by id and digest everywhere else. Never re-encode plan
-  content into coordination records, messages, or reflections — the substrate
-  injects a room-bound plan digest automatically and rejects digest
-  re-encoding. Board-as-decision-records was a workaround; it is retired.
+## Anti-patterns
 
-Completion is a substrate predicate, not an honor rule. The done transition is
-refused unless every dependency is done, the verify sibling's receipt is
-submitted, and the declared proof command has a passing receipt. Refusals land
-in the replay. A task without a proof command or verify sibling still needs an
-honest concrete deferral reason before the plan closes.
+- Charting fog you cannot phrase, producing tasks nobody can start.
+- Building a Plan node for a one-file fix.
+- Editing a rendered projection, markdown, JSON, or mermaid, as though it were the plan.
+- Recording an invented answer on a HITL task.
+- Hand-minting task ids; aliases are for prose, the substrate id is the key.
+- Re-encoding plan content into coordination records, messages, or reflections instead of referencing by id and digest.
+- Marking a task verified on evidence weaker than the class its claim requires.
+- Batching deferrals into a quiet non-goals table instead of surfacing each one for consent.
+- Adding wall-clock, compute, or cost estimates to a task.
 
-## Multi-Head Execution
+## Reference
 
-Fan-out is plan-scoped. Heads claim from the plan, not from a coordination
-record: `plan claim` (or `multihead_next` with `plan_id`, which restricts
-routing to that plan's task subgraph). Refinements stay inside the plan —
-children of a refined task retain plan membership. Progress is visible to
-every head through the injected plan digest and `plan query` — do not
-hand-copy status between heads.
-
-Plans are tenant-scoped. Until ambient identity lands, a head that resolves
-the wrong tenant sees no plan digest at all. Treat a missing digest for a plan
-you know exists as an identity/tenant mismatch to diagnose, not as evidence
-the plan is gone.
-
-## Continuity
-
-A future session picks up where this stops by reading the plan projection:
-`plan query` (`progress`, `next_actionable`), `plan what_changed` since the
-last known version, then `plan render` if it needs the full view. Continuity
-packs no longer carry plan state — one less thing compaction can eat.
-
-## Output
-
-Right-size the deliverable:
-
-- Small plans: a task table + an Executive Summary line, nothing more.
-- Production plans: use the full template in
-  `../../references/PLAN_TEMPLATE.md`.
-- UI visual plans: include the UI Visual Milestone gates from
-  `../../references/UI_VISUAL_PROJECT_GATES.md`.
-
-The template is a tool, not a contract. Use only the sections the work needs.
-
-## Routing
-
-- Ambiguity or option pressure → `/harness mode=theorize` briefly, then back.
-- SDK harness product questions → `codex-sdk-harness-product`.
-- Redis/THG/product-state questions → `redis-harness-operator` /
-  `redis-product-safety`.
-- Implementation → `/harness mode=execute`, with the plan id as input.
-
-## Anti-Patterns
-
-- Pre-writing a 13-section plan template for a one-file fix.
-- Hand-minting task ids and reconciling against them across sessions. Aliases
-  are for prose; the substrate id is the key.
-- Re-encoding plan content into coordination records, messages, reflections,
-  or continuity packs. Reference by id/digest.
-- Editing a `.harness/checklists/*.json` projection as if it were the source of
-  truth. It is a render target.
-- Hiding deferred work behind elegant prose.
-- Calling validation "TBD" — declare the proof command at task creation
-  instead, so the engine can hold the line.
-- Re-planning from memory when the plan's replay is one bounded call away.
-- Treating `handoff=spark` as permission to disappear: stay in-thread to
-  review what the executor built.
-- Adding time/compute/cost estimates to a task. Plans describe what; observed
-  runtimes describe how long.
+Verb signatures and canned queries: [PLAN-VERBS.md](PLAN-VERBS.md). Ground anything further in `docs/site/reference/mcp-tools.md` of the Theorem repo, not in prose summaries of it.

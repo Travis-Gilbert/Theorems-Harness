@@ -33,6 +33,7 @@
     "./index-spine": "./src/product/index-spine.mjs",
     "./manifest": "./src/product/load-manifest.mjs",
     "./native-mcp": "./src/product/native-mcp.mjs",
+    "./plan-map": "./src/product/plan-map.mjs",
     "./remote-doctor": "./src/product/remote-doctor.mjs",
     "./receipts": "./src/product/receipts.mjs",
     "./scorecards": "./src/product/scorecards.mjs"
