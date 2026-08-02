@@ -100,7 +100,13 @@ function formatFrontier(result) {
       ?? result?.queryReceipt?.receiptId
       ?? "",
   ).trim();
+  const digest = String(
+    result?.query_receipt?.plan_hash
+      ?? result?.queryReceipt?.planHash
+      ?? "",
+  ).trim();
   const tasks = taskIds.length ? taskIds.join(", ") : "empty";
+  const digestSuffix = digest ? ` digest:${digest}` : "";
   const receiptSuffix = receipt ? ` receipt:${receipt}` : "";
-  return `Frontier (${count}): ${tasks}${receiptSuffix}`;
+  return `Frontier (${count})${digestSuffix}: ${tasks}${receiptSuffix}`;
 }

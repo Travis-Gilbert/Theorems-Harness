@@ -25,7 +25,10 @@ test("plan map requests Mermaid plus frontier and formats one transportable map"
         result: {
           count: 1,
           rows: [{ task_id: "task-frontier" }],
-          query_receipt: { trace_id: "planq:fixture" },
+          query_receipt: {
+            trace_id: "planq:fixture",
+            plan_hash: "sha256:frontier-fixture",
+          },
         },
       };
     },
@@ -40,7 +43,7 @@ test("plan map requests Mermaid plus frontier and formats one transportable map"
   );
   assert.equal(
     formatPlanMap(result),
-    `${MERMAID}\nFrontier (1): task-frontier receipt:planq:fixture\n`,
+    `${MERMAID}\nFrontier (1) digest:sha256:frontier-fixture: task-frontier receipt:planq:fixture\n`,
   );
 });
 
@@ -61,7 +64,10 @@ test("plan map CLI calls a live MCP-shaped endpoint", async (context) => {
       : {
           count: 2,
           rows: [{ task_id: "task-a" }, { task_id: "task-b" }],
-          query_receipt: { trace_id: "planq:live-fixture" },
+          query_receipt: {
+            trace_id: "planq:live-fixture",
+            plan_hash: "sha256:frontier-live-fixture",
+          },
         };
     response.writeHead(200, { "content-type": "application/json" });
     response.end(JSON.stringify({
@@ -102,7 +108,7 @@ test("plan map CLI calls a live MCP-shaped endpoint", async (context) => {
   assert.equal(code, 0, stderr);
   assert.equal(
     stdout,
-    `${MERMAID}\nFrontier (2): task-a, task-b receipt:planq:live-fixture\n`,
+    `${MERMAID}\nFrontier (2) digest:sha256:frontier-live-fixture: task-a, task-b receipt:planq:live-fixture\n`,
   );
   assert.deepEqual(
     requests.map((entry) => entry.arguments),
