@@ -144,9 +144,9 @@ test("host package uses product identity and portable MCP launch", () => {
 
   assert.equal(claudePlugin.name, "theorems-harness-product");
   assert.equal(codexPlugin.name, "theorems-harness-product");
-  assert.equal(claudePlugin.version, "0.1.10");
-  assert.equal(codexPlugin.version, "0.1.10");
-  assert.equal(packageManifest.version, "0.1.10");
+  assert.match(packageManifest.version, /^\d+\.\d+\.\d+$/);
+  assert.equal(claudePlugin.version, packageManifest.version);
+  assert.equal(codexPlugin.version, packageManifest.version);
   assert.equal(claudePlugin.hooks, undefined);
   assert.equal(claudePlugin.skills, undefined);
   assert.deepEqual(claudePlugin.commands, PRODUCT_COMMANDS);
@@ -176,12 +176,13 @@ test("host package routes remote MCP through the OAuth serving tier", () => {
 test("marketplace manifests advertise the product plugin without colliding with workflow harness", () => {
   const claudeMarketplace = readJson(".claude-plugin/marketplace.json");
   const codexMarketplace = readJson(".codex-plugin/marketplace.json");
+  const packageManifest = readJson("package.json");
 
   for (const marketplace of [claudeMarketplace, codexMarketplace]) {
-    assert.equal(marketplace.version, "0.1.10");
+    assert.equal(marketplace.version, packageManifest.version);
     assert.equal(marketplace.plugins.length, 1);
     assert.equal(marketplace.plugins[0].name, "theorems-harness-product");
-    assert.equal(marketplace.plugins[0].version, "0.1.10");
+    assert.equal(marketplace.plugins[0].version, packageManifest.version);
     assert.notEqual(marketplace.plugins[0].name, "theorems-harness");
   }
 });
