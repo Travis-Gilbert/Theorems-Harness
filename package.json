@@ -1,6 +1,6 @@
 {
   "name": "theorems-harness-product",
-  "version": "0.1.10",
+  "version": "0.1.11",
   "description": "Product delivery surface for Theorems Harness capabilities, hooks, and MCP facade.",
   "type": "module",
   "private": false,
@@ -33,6 +33,7 @@
     "./index-spine": "./src/product/index-spine.mjs",
     "./manifest": "./src/product/load-manifest.mjs",
     "./native-mcp": "./src/product/native-mcp.mjs",
+    "./plan-map": "./src/product/plan-map.mjs",
     "./remote-doctor": "./src/product/remote-doctor.mjs",
     "./receipts": "./src/product/receipts.mjs",
     "./scorecards": "./src/product/scorecards.mjs"
