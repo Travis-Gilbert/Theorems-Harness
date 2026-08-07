@@ -86,6 +86,21 @@ test("MCP stdio server responds to a single exact framed tools/list request", ()
   assert.match(child.stdout, /semantic_grep/);
 });
 
+test("MCP stdio server responds to newline-delimited JSON (MCP spec framing)", () => {
+  const body = JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/list" });
+  const child = spawnSync(process.execPath, [resolve(root, "src/mcp/server.mjs")], {
+    cwd: root,
+    encoding: "utf8",
+    input: `${body}\n`,
+  });
+
+  assert.equal(child.status, 0, child.stderr);
+  assert.match(child.stdout, /prepare_context/);
+  assert.match(child.stdout, /index_context/);
+  assert.match(child.stdout, /semantic_grep/);
+  assert.doesNotMatch(child.stdout, /Content-Length:/);
+});
+
 test("MCP facade compiles Rust context packet", async () => {
   const response = await handleRpcMessage({
     jsonrpc: "2.0",

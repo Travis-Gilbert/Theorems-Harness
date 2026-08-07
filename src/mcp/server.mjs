@@ -1323,15 +1323,25 @@ function textResult(id, value) {
   });
 }
 
+// Response framing adapts to the client: LSP-style Content-Length framing for
+// clients that send it (Claude Code legacy), MCP-spec newline-delimited JSON
+// otherwise (Zed, official MCP SDK clients). Defaults to the MCP spec.
+let writeFraming = "newline";
+
 function writeMessage(message) {
   const body = JSON.stringify(message);
-  stdout.write(`Content-Length: ${Buffer.byteLength(body)}\r\n\r\n${body}`);
+  if (writeFraming === "lsp") {
+    stdout.write(`Content-Length: ${Buffer.byteLength(body)}\r\n\r\n${body}`);
+  } else {
+    stdout.write(`${body}\n`);
+  }
 }
 
 function parseFramedMessages(buffer) {
   const messages = [];
   let rest = buffer;
 
+  // LSP-style Content-Length framing (legacy clients).
   while (rest.length) {
     const headerEnd = rest.indexOf("\r\n\r\n");
     if (headerEnd === -1) {
@@ -1348,8 +1358,25 @@ function parseFramedMessages(buffer) {
     if (rest.length < bodyEnd) {
       break;
     }
-    messages.push(JSON.parse(rest.slice(bodyStart, bodyEnd).toString("utf8")));
+    messages.push({
+      message: JSON.parse(rest.slice(bodyStart, bodyEnd).toString("utf8")),
+      framed: true,
+    });
     rest = rest.slice(bodyEnd);
+  }
+
+  // MCP spec stdio framing: newline-delimited JSON (Zed, SDK clients).
+  while (rest.length) {
+    const newline = rest.indexOf("\n");
+    if (newline === -1) {
+      break;
+    }
+    const line = rest.slice(0, newline).toString("utf8").trim();
+    rest = rest.slice(newline + 1);
+    if (!line) {
+      continue;
+    }
+    messages.push({ message: JSON.parse(line), framed: false });
   }
 
   return { messages, rest };
@@ -1361,15 +1388,21 @@ async function runStdio() {
     buffer = Buffer.concat([buffer, chunk]);
     const parsed = parseFramedMessages(buffer);
     buffer = parsed.rest;
-    for (const message of parsed.messages) {
-      writeMessage(await handleRpcMessage(message));
+    for (const entry of parsed.messages) {
+      if (entry.framed) {
+        writeFraming = "lsp";
+      }
+      writeMessage(await handleRpcMessage(entry.message));
     }
   }
 
   const parsed = parseFramedMessages(buffer);
   buffer = parsed.rest;
-  for (const message of parsed.messages) {
-    writeMessage(await handleRpcMessage(message));
+  for (const entry of parsed.messages) {
+    if (entry.framed) {
+      writeFraming = "lsp";
+    }
+    writeMessage(await handleRpcMessage(entry.message));
   }
 }
 

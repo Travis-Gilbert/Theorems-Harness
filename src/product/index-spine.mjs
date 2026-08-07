@@ -109,7 +109,7 @@ function nativeArguments(input) {
 
 function requestHeaders(input) {
   const headers = {
-    accept: "application/json",
+    accept: "application/json, text/event-stream",
     "content-type": "application/json",
   };
   const token = tokenFrom(input);

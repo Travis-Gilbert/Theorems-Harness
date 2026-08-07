@@ -103,7 +103,7 @@ function compoundEndpoint(remoteUrl, input, tenant) {
 
 function requestHeaders(input) {
   const headers = {
-    accept: "application/json",
+    accept: "application/json, text/event-stream",
   };
   const token = tokenFrom(input);
   if (token) {

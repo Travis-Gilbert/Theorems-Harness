@@ -725,7 +725,7 @@ function degraded(reason, details = {}) {
 
 function requestHeaders(input) {
   const headers = {
-    accept: "application/json",
+    accept: "application/json, text/event-stream",
     "content-type": "application/json",
   };
   const token = tokenFrom(input);
@@ -737,7 +737,7 @@ function requestHeaders(input) {
 
 function rerankerHeaders(token) {
   const headers = {
-    accept: "application/json",
+    accept: "application/json, text/event-stream",
     "content-type": "application/json",
   };
   if (token) {
