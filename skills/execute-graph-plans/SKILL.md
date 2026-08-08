@@ -1,8 +1,8 @@
---- >
-description:
+---
+description:>
   Traverse a compiled plan graph on the Theorem substrate, one move per turn,
   until fixpoint. Harness binding: requires the Theorem MCP surface (plan tool
-  with the motion actions, multihead_*, coordination_*, encode, continuity_pack).
+  with the motion actions, multihead, coordination, encode, continuity_pack).
   Agents without those tools use the portable binding of this skill.
 ---
 
