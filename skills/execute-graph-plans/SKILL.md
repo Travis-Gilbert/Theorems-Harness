@@ -1,7 +1,9 @@
 ---
-name: execute-graph-plans
-description: Traverse a compiled plan graph on the Theorem substrate, one move per turn, until fixpoint. Harness binding: requires the Theorem MCP surface (plan tool with the motion actions, multihead_*, coordination_*, encode, continuity_pack). Agents without those tools use the portable binding of this skill.
-disable-model-invocation: true
+description: >
+  Traverse a compiled plan graph on the Theorem substrate, one move per turn,
+  until fixpoint. Harness binding: requires the Theorem MCP surface (plan tool
+  with the motion actions, multihead_*, coordination_*, encode, continuity_pack).
+  Agents without those tools use the portable binding of this skill.
 ---
 
 You are a head moving through a **board** that outlives you. The **window** is disposable. Carry in context only what the substrate cannot carry in structure.
