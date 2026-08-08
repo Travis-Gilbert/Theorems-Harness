@@ -7,7 +7,13 @@
   },
   "repository": "https://github.com/Travis-Gilbert/Theorems-Harness",
   "license": "MIT",
-  "keywords": ["mcp", "harness", "agent-context", "rust", "capability-manifest"],
+  "keywords": [
+    "mcp",
+    "harness",
+    "agent-context",
+    "rust",
+    "capability-manifest"
+  ],
   "mcpServers": "./.mcp.json",
   "skills": "./skills/",
   "commands": [
@@ -15,7 +21,9 @@
     "./commands/code.md",
     "./commands/reconstruct.md",
     "./commands/memory.md",
-    "./commands/grep.md"
+    "./commands/grep.md",
+    "./commands/compute_graph_plans.md",
+    "./commands/execute_graph_plans.md"
   ],
   "hooks": "./hooks/codex-hooks.json",
   "interface": {
