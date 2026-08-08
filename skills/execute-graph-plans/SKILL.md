@@ -1,4 +1,4 @@
----
+--- >
 description:
   Traverse a compiled plan graph on the Theorem substrate, one move per turn,
   until fixpoint. Harness binding: requires the Theorem MCP surface (plan tool
