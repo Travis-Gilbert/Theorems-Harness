@@ -106,7 +106,9 @@ test("Claude and Codex hook configs install lifecycle Compound Engineering trigg
   for (const config of [claudeHooks, codexHooks]) {
     assert.ok(config.hooks.SessionStart, "SessionStart hook is registered");
     assert.ok(config.hooks.SessionEnd, "SessionEnd hook is registered");
+    assert.ok(config.hooks.PreToolUse, "PreToolUse hook is registered");
     assert.ok(config.hooks.PostToolUse, "PostToolUse hook is registered");
+    assert.ok(config.hooks.Stop, "Stop hook is registered");
     assert.match(
       hookCommands(config.hooks.SessionStart).join("\n"),
       /session-run-open\.mjs/,
@@ -118,14 +120,29 @@ test("Claude and Codex hook configs install lifecycle Compound Engineering trigg
       "SessionStart checks server-owned code context freshness",
     );
     assert.match(
+      hookCommands(config.hooks.SessionStart).join("\n"),
+      /code-autoindex\.mjs/,
+      "SessionStart ensures the code index",
+    );
+    assert.match(
       hookCommands(config.hooks.SessionEnd).join("\n"),
       /session-run-close\.mjs/,
       "SessionEnd closes the session run",
     );
     assert.match(
+      hookCommands(config.hooks.PreToolUse).join("\n"),
+      /session-run-tool\.mjs/,
+      "PreToolUse records session run tool events",
+    );
+    assert.match(
       hookCommands(config.hooks.PostToolUse).join("\n"),
       /session-run-tool\.mjs/,
       "PostToolUse records session run tool events",
+    );
+    assert.match(
+      hookCommands(config.hooks.Stop).join("\n"),
+      /session-run-close\.mjs/,
+      "Stop closes the session run",
     );
     assert.ok(hookTimeoutFor(config.hooks.SessionStart, /session-run-open\.mjs/) >= 25);
     assert.ok(hookTimeoutFor(config.hooks.SessionStart, /session-code-context\.mjs/) >= 15);
@@ -227,6 +244,8 @@ const PRODUCT_COMMANDS = [
   "./commands/reconstruct.md",
   "./commands/memory.md",
   "./commands/grep.md",
+  "./commands/compute_graph_plans.md",
+  "./commands/execute_graph_plans.md",
 ];
 
 function runHook(script, input) {

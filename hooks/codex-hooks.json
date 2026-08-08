@@ -15,6 +15,12 @@
             "command": "node \"${PLUGIN_ROOT}/src/bin/session-code-context.mjs\"",
             "timeout": 15,
             "statusMessage": "Loading codebase context"
+          },
+          {
+            "type": "command",
+            "command": "node \"${PLUGIN_ROOT}/src/bin/code-autoindex.mjs\"",
+            "timeout": 25,
+            "statusMessage": "Ensuring Theorems code index (async)"
           }
         ]
       }
@@ -52,6 +58,12 @@
             "command": "node \"${PLUGIN_ROOT}/src/bin/pretool-context.mjs\"",
             "timeout": 10,
             "statusMessage": "Checking Theorems Harness capability triggers"
+          },
+          {
+            "type": "command",
+            "command": "node \"${PLUGIN_ROOT}/src/bin/session-run-tool.mjs\"",
+            "timeout": 10,
+            "statusMessage": "Recording Theorems Harness session run pre-tool event"
           }
         ]
       }
@@ -76,6 +88,18 @@
             "command": "node \"${PLUGIN_ROOT}/src/bin/session-run-tool.mjs\"",
             "timeout": 10,
             "statusMessage": "Recording Theorems Harness session run tool event"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${PLUGIN_ROOT}/src/bin/session-run-close.mjs\"",
+            "timeout": 25,
+            "statusMessage": "Closing Theorems Harness session run on Stop"
           }
         ]
       }
