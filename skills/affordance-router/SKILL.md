@@ -1,10 +1,10 @@
 ---
-name: affordance-router
+name: Compute-offload
 description: Use when the user asks a graph or tabular question with an exact answer (reachability, transitive closure, shortest or weighted paths, counts, aggregations, set operations, joins), or mentions connectors, external tools, invoke, affordances, or "which tool". Route exact symbolic work to compute_offload.route_operation before reasoning, and keep connector spokes behind tool_search and invoke.
 version: 0.1.0
 ---
 
-# Affordance Router
+# Compute-offload
 
 Connectors and exact-compute engines are affordances, not flat model tools. Keep
 connector details behind `tool_search` and `invoke` instead of advertising every
