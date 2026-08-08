@@ -42,7 +42,7 @@ Reference plans by id/digest. Never re-encode plan content into messages, coordi
 
 Spawn at an edge, taking the departing **handoff** from the edge itself, or resume from a **continuation**: `continuity_pack` + `plan reenter` (releases stale claims, returns next-actionable packets) + `plan what_changed` since the anchor revision + the active frontier, held leases, transient windows, and the **budget clock**. Session rebirth is the crash semantics, not a feature.
 
-Done when your brief holds the occupied node's **blueprint**, the **interfaces** of adjacent nodes, **gists** of the remaining path, the **dependents** line, and your remaining **autonomy box** — and nothing beyond that. No non-adjacent blueprint enters a brief.
+Done when your brief holds the occupied node's **blueprint**, the **interfaces** of adjacent nodes, **gists** of the remaining path, the **dependents** line, and your remaining **autonomy box** - nothing beyond that. No non-adjacent blueprint enters a brief.
 
 ## 2. Choose contestably
 
