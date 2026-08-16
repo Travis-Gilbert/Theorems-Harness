@@ -4,6 +4,8 @@ description: This skill should be used when the user asks to "reverse engineer" 
 version: 0.1.4
 ---
 
+**Audience:** Theorem-internal subagent and MCP-connected head. A rule that binds only one audience names it.
+
 # Reverse Engineer
 
 Start from the supplied repo, path, artifact, or URL. If the target is missing,

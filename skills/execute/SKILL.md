@@ -3,6 +3,8 @@ name: execute
 description: Carry a bounded task through code changes and validation inside a receipted run. Use when the user asks to implement, fix, ship, simplify, run tests, reconcile a plan or checklist, merge, or deploy; when a run surprises you mid-flight; or when a claim of done needs evidence. Claims from /planning-theorem's plan id; pivots to /theorize, /research-theorem, or coordination when the evidence calls for it.
 ---
 
+**Audience:** Theorem-internal subagent and MCP-connected head. A rule that binds only one audience names it.
+
 # Execute
 
 Execute changes reality: files, tests, runtime state, docs, packaging, deployment. It runs inside the selection closure: the plan's obligation set defines what counts as equivalent-and-done, so inside it you act decisively and search freely, and done is a derivation the substrate replays, never an assertion you make. Two disciplines organize everything here: a surprise climbs the repair ladder before it reaches a human, and evidence outranks belief at every transition.

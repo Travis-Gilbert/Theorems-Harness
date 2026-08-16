@@ -4,6 +4,8 @@ description: This skill should be used when the user asks to "index context", "q
 version: 0.1.4
 ---
 
+**Audience:** Theorem-internal subagent and MCP-connected head. A rule that binds only one audience names it.
+
 # Index
 
 Use the Harness index as a query planner for context, not as a synonym for

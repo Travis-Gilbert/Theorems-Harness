@@ -3,6 +3,8 @@ name: theorems-harness
 description: Theorem's Harness default plugin skill. Use when the user invokes /harness or asks for grounded planning, implementation, debugging, review, context preparation, validation, reporting, cross-agent coordination, typed memory, encode, run lifecycle, replay, fork/compare, fractal search, code search, or harness-backed agent work.
 ---
 
+**Audience:** Theorem-internal subagent and MCP-connected head. A rule that binds only one audience names it.
+
 # Theorem's Harness
 
 Theorem's Harness is the public product layer for grounded agent work. The SDK
@@ -36,54 +38,60 @@ When the user invokes `/harness`, "Theorem's Harness", or an equivalent phrase:
 
 1. Treat it as consent to use harness abilities for the active task.
 2. Resolve the current task from the user's words and live repo state.
-3. Select the first capability mix. Use `harness_route` when available; otherwise
-   apply the routing rules below directly.
+3. Select the first capability mix by applying the routing table below, naming
+   the skill you route to. If no skill matches, say so rather than narrating a switch.
 4. Work through short cycles: observe, choose, act, check, and decide whether to
    continue, pivot, coordinate, validate, remember, or report.
 5. Keep the harness visible only where it helps the user trust the work. Do not
-   narrate every internal switch.
+   narrate every internal switch; but when a route is chosen or refused, say
+   which skill you routed to — or that no skill matched.
 
 The command may accept `mode=plan`, `mode=execute`, or similar hints, but hints
 are not handcuffs. Honor the user's explicit intent, then add supporting
 capabilities when the work needs them.
 
-## Capability Palette
+## Routing Table
 
-Use these as abilities inside one run, not as competing products:
+Use these as abilities inside one run, not as competing products. Each row names the skill under `skills/` it routes to, so the table cannot drift from the skill set. Route against this table, not against `skillList`: the deployed `skillList`/`skillGet` enumerate Theorem-side skill packs, not the routing skills under `skills/`, so the table is the routing read.
 
-| Capability | Use it when |
+| Use it when | invokes |
 |---|---|
-| `observe` | Ground the task in repo state, tool state, runtime state, and current context. |
-| `theorize` | Several real approaches exist and a short option pass will avoid churn. |
-| `plan` | The task needs stable acceptance criteria, a checklist, or multi-session memory. |
-| `execute` | Files must change, tests must run, bugs must be fixed, or a slice must ship. |
-| `diagnose` | A failure, regression, flaky test, deploy issue, or runtime surprise appears. |
-| `coordinate` | Claude Code, Codex, Claude.ai, or another agent may overlap the work. |
-| `ambition` | A build, plan, or handoff could be underscoped relative to what was asked. |
-| `compile_context` | The prompt/context is stale, broad, or missing the source surface. |
-| `research` | Evidence, graph search, code search, or external/current reality is needed. |
-| `validate` | A claim needs tests, screenshots, deploy proof, replay, or runtime evidence. |
-| `peer_review` | A risky diff, multi-agent edit, commit, PR, or launch-ready claim is near. |
-| `remember` | The session produced a reusable lesson, decision, postmortem, or correction. |
-| `report` | The user needs a concise, truthful closeout with done/partial/blocked state. |
+| Several real approaches exist and a short option pass will avoid churn | `theorize` |
+| The task needs stable acceptance criteria, a checklist, or multi-session memory | `planning-theorem` |
+| Files must change, tests must run, bugs must be fixed, or a slice must ship | `execute` |
+| A decision waits on facts from docs, APIs, source code, or the graph | `research-theorem` |
+| A decision hinges on how something should look or behave | `prototype-theorem` |
+| A resolved decision calls for a spec or HANDOFF document | `spec-theorem` |
+| The work charts or traverses a plan graph | `compute-graph-plans` / `execute-graph-plans` |
+| Another head may overlap the work, or coordination is wanted | `harness-coordinate` |
+| A graph or tabular question has an exact answer, or connectors/affordances are involved | `affordance-router` |
+| A task should be queued or a head spawned from the job board | `dispatch` |
+| A bounded Python feature should be ported to Rust | `feature-port` |
+| The user asks to write, debug, or review Rust | `rust-engineering` |
+| A repo, URL, binary, API, or workflow should be reverse-engineered | `reverse-engineer` |
+| Context should be indexed or memory queried before acting | `index` |
+| The user asks what a run or plan actually did | `replay-last-run` |
+| A full window should survive compaction | `shed` |
 
 ## Routing Heuristics
 
 - If the user asks to coordinate, message, ping, hand off, or work with another
-  agent, start with `coordinate`, then return to the main work.
+  agent, start with `harness-coordinate`, then return to the main work.
 - If the user asks to implement, fix, ship, simplify, or run tests, start with
-  `execute`; add `diagnose` when a failure is not yet understood.
+  `execute`; a failure that is not yet understood stays in `execute`'s diagnostic shape.
 - If the user asks for a plan, spec, migration, checklist, or multi-session
-  strategy, start with `plan`; allow a bounded execution handoff only when the
+  strategy, start with `planning-theorem` (a spec or handoff routes to
+  `spec-theorem`); allow a bounded execution handoff only when the
   first slice is obvious or requested.
 - Plan-shaped work routes through the durable plan substrate: `plan create` is
   the canonical act, heads claim and transition tasks on the plan, and plans
   are referenced by id/digest — never re-encoded into coordination records,
   messages, or reflections.
 - If the user asks for research, evidence, graph search, code discovery, or
-  current external facts, start with `research` or `compile_context`.
-- If the user asks for review or a second model's view, start with
-  `peer_review`; do not convert that into implementation unless asked.
+  current external facts, start with `research-theorem`; if the context is
+  stale or the source surface is missing, start with `index`.
+- If the user asks for review or a second model's view, route through
+  `execute`'s peer-review gate; do not convert that into implementation unless asked.
 - If the task is broad but actionable, use a short `theorize` pass, choose a
   default, and continue. Do not park in brainstorming.
 - If hooks already injected a useful context brief, use it. If it is missing,
@@ -169,7 +177,6 @@ treat it as expected.
 
 | Verb | Purpose |
 |---|---|
-| `harness_route` | Choose the next capability mix for a task or checkpoint. |
 | `harness_toolkit` | Compile or inspect the task toolkit from task type, permissions, and scope before a run. |
 | `harness_begin` | Open a new harness run. |
 | `harness_step` | Record a step inside an open run. |

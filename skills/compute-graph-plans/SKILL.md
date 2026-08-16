@@ -1,8 +1,9 @@
 ---
 name: compute-graph-plans
 description: Chart a destination as a traversable plan graph on the Theorem substrate, ending at a gate. Harness binding: requires the Theorem MCP surface (plan tool, multihead_*). Agents without those tools — or with a listed-but-dead plan surface — use the portable binding of this skill.
-disable-model-invocation: true
 ---
+
+**Audience:** Theorem-internal subagent and MCP-connected head. A rule that binds only one audience names it.
 
 The output is not a document. It is a **board**: a graph whose nodes are context boundaries and whose edges will carry handoffs. A plan that cannot be traversed is a planning bug.
 
@@ -19,15 +20,16 @@ This is the **harness binding**. Charting expresses through the `plan` tool; the
 | compile obligations | `plan create` — acceptance criteria compile into obligations; `acknowledge_unknown` is the explicit carried-open transition |
 | typed nodes | plan tasks; every work task gets a **verify sibling** (`spawn_verify`) |
 | decision nodes | typed agent-owned; a node needing **user-held information** declares the specific fact via `requires` |
-| **autonomy box** | proposed by charting with concrete defaults; granted at the gate and carried on the plan |
+| **authority grant** | proposed by charting with concrete defaults — trust tier, allowed external effects, live provider authority, and protected state — granted at the gate and carried on the plan |
 | **attempt policy** | resolved per node type at stamping; **palette drag** overrides; the verify sibling's oracle is fixed across every band |
 | refine / subgraph | `plan refine` / `add_task` — children retain plan membership |
 | node types / palette | D2 node-type toolsets via `node_type_binding`; **palette drag** for explicit overrides |
 | membrane | `plan render` — deterministic projection (report markdown, mermaid, movetext); never hand-author |
 | scopes | declared per task at create; overlaps declared; `plan lock` schedules with per-head demand constraints |
 | next-moves dry run | `plan query frontier` / `next_actionable` (or `multihead_next`) over empty occupancy |
-| gate | the user gates on the ranked opening moves and grants the autonomy box; the plan id is handed over for execution |
+| gate | the user gates on the ranked opening moves and grants the authority grant; the plan id is handed over for execution |
 | **mint** | `plan import` makes the substrate authoritative over a portably charted board; the charting laws validate at import with named refusal receipts |
+| shed | the fifth motion, the window motion — during execution a full window is shed, not parked |
 
 Charting ends at a gate. It executes nothing; `/execute_graph_plans` claims the plan id this produces.
 
@@ -35,11 +37,11 @@ Charting ends at a gate. It executes nothing; `/execute_graph_plans` claims the 
 
 State the destination and its acceptance criteria, then compile the criteria into authoritative **obligations** through `plan create`. Name the unfakeable exit in the plan body: **fixpoint**, where no rewrite applies and every obligation is discharged.
 
-**Evidence class on every obligation.** Name what would discharge it: local unit, published tip artifact, CI job id, HITL screenshot, install path. When the destination is a usability oracle (download → open → MCP → looks normal), tip/publish obligations outrank local debug greens; write that into the obligation text so execution cannot silently substitute.
+**Evidence grade on every obligation.** Name what would discharge it: local unit, published tip artifact, CI job id, HITL screenshot, install path. When the destination is a usability oracle (download → open → MCP → looks normal), tip/publish obligations outrank local debug greens; write that into the obligation text so execution cannot silently substitute.
 
 **Goal nodes that subsume maintenance.** If a destination oracle subsumes seam/unit gates, chart the goal as the ranked opening move and demote the subsumed CI/seam work to background **weather** or maintenance, with an edge that records the subsumption. Do not leave two equal "first moves" that fight.
 
-**Source guardrails compile.** A source document's guardrail phrased as "X precedes everything" becomes a gate obligation with an evidence class, or the plan records the reason it does not. A blocker that lives only in a preamble is a blocker execution never meets.
+**Source guardrails compile.** A source document's guardrail phrased as "X precedes everything" becomes a gate obligation with an evidence grade, or the plan records the reason it does not. A blocker that lives only in a preamble is a blocker execution never meets.
 
 Done when every acceptance criterion maps to at least one obligation, and every obligation names the evidence that would discharge it — a declared **proof command** where the task is code-shaped, so the done-transition can enforce it.
 
@@ -79,7 +81,7 @@ Done when you can name, for every edge, the context a fresh head would need acro
 
 Node types carry default toolsets and skill packs through `node_type_binding`; **palette drag** is the override. The node answers the tool question, so the plan body describes work rather than listing tools. Tool visibility beyond the four motions is decided by the node, never by a global tool menu.
 
-Node types also carry a default **attempt policy**: the escalation bands, the band budgets, and the park condition, overridable by **palette drag** like any type default. The verify sibling's oracle is fixed across every band; escalation changes strategy, budget, and head, never what passing means. Where the surface answers `cypher_query`, a verify sibling may declare its oracle as a constraint query, passing when the assertion returns zero violation rows, checked by the substrate with a receipt.
+Node types also carry a default **attempt policy**: the escalation bands and the park condition, overridable by **palette drag** like any type default. The verify sibling's oracle is fixed across every band; escalation changes strategy and head, never what passing means. Where the surface answers `cypher_query`, a verify sibling may declare its oracle as a constraint query, passing when the assertion returns zero violation rows, checked by the substrate with a receipt.
 
 Done when every node's palette and attempt policy resolve from its type, and any node needing a tool outside its type default carries an explicit binding.
 
@@ -106,15 +108,15 @@ A plan that cannot be traversed is a planning bug, so traversability is checked 
 - Obligations are satisfiable in dependency order; every work node's verify sibling is present.
 - The **scope law** holds across the plan (step 6).
 - No node is typed as a human stop, and every declared **user-held information** requirement names its fact.
-- Every tip/CI/HITL obligation names its evidence class; no silent local-debug substitution.
+- Every tip/CI/HITL obligation names its evidence grade; no silent local-debug substitution.
 
 Then dry-run the selector: `plan query frontier` / `next_actionable` (or `multihead_next`) over empty occupancy, render the ranked opening moves with their per-component evidence beside the mermaid projection (`plan render`), and present the report.
 
-Charting arrives with the **autonomy box** proposed: concrete defaults for budget, wall clock, and trust tier beside the ranked moves, so the user edits a proposal rather than filling a blank. The user gates on what the agent would actually do first, and grants the box. **This gate is the only planned human contact in the plan's life.** Everything after it is exception-only, through **escalate** under **interrupt economics**. Present it that way, so the grant is made knowingly. If the destination is a usability oracle, say explicitly that tip publish + install + MCP on the published binary is the gate, not local unit green.
+Charting arrives with the **authority grant** proposed: concrete defaults for trust tier, allowed external effects, live provider authority, and protected state beside the ranked moves, so the user edits a proposal rather than filling a blank. The user gates on what the agent would actually do first, and grants the authority grant. **This gate is the only planned human contact in the plan's life.** Everything after it is exception-only, through **escalate** under **interrupt economics**. Present it that way, so the grant is made knowingly. If the destination is a usability oracle, say explicitly that tip publish + install + MCP on the published binary is the gate, not local unit green.
 
 A board charted under the portable binding ends at the gate and at a **mint**: the executing session's first act imports it, the import validates these charting laws with named refusal receipts, and from then on the substrate is authoritative with the board files regenerated as its mirror. The projection carries the board's source digest, so drift between mirror and substrate is checked, never argued.
 
-Done when the structural checks pass, the proposed autonomy box and the gate decision are recorded on the plan, and the plan id (or the pre-mint board) is handed over for execution.
+Done when the structural checks pass, the proposed authority grant and the gate decision are recorded on the plan, and the plan id (or the pre-mint board) is handed over for execution.
 
 ## Guardrails
 

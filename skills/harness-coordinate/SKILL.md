@@ -3,6 +3,8 @@ name: harness-coordinate
 description: Teach and run Theorem's Harness cross-agent coordination protocol. Use when Codex, Claude Code, Claude.ai, or another head works the same repo/task and the user wants coordination, shared intent, mentions, presence, handoff, or a ping-like wait. The model is one agent with several heads sharing a scratchpad, announcing over a shared room and checking semantic overlap before reconciling concrete edits.
 ---
 
+**Audience:** Theorem-internal subagent and MCP-connected head. A rule that binds only one audience names it.
+
 # Harness Coordinate
 
 You are not several agents sharing a repo. You are one agent with several heads

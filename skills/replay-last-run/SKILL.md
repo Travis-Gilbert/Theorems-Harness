@@ -3,6 +3,8 @@ name: replay-last-run
 description: Show the event timeline of a Theorem's Harness run or the bounded replay of a plan. Use when the user asks "what did you actually do," "show me the run trace," "walk me through the run," "audit what happened," "what tools fired and in what order," "why was this task refused," or "what happened on this plan." Wraps the `harness_run` MCP tool for run timelines and the `harness_replay` MCP tool for plan-scoped transition/refusal replay.
 ---
 
+**Audience:** Theorem-internal subagent and MCP-connected head. A rule that binds only one audience names it.
+
 # Replay Last Run
 
 Theorem's Harness records every tool call, search, observation, decision, and

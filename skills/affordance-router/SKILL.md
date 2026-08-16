@@ -4,6 +4,8 @@ description: Use when the user asks a graph or tabular question with an exact an
 version: 0.1.0
 ---
 
+**Audience:** Theorem-internal subagent and MCP-connected head. A rule that binds only one audience names it.
+
 # Compute-offload
 
 Connectors and exact-compute engines are affordances, not flat model tools. Keep
