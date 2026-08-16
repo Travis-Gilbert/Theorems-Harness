@@ -4,6 +4,8 @@ description: This skill should be used when the user asks to "write Rust", "debu
 version: 0.1.4
 ---
 
+**Audience:** Theorem-internal subagent and MCP-connected head. A rule that binds only one audience names it.
+
 # Rust Engineering
 
 Start from the live crate/workspace shape. Rust repos often have nested

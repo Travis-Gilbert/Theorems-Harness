@@ -3,6 +3,8 @@ name: dispatch
 description: The local-loop job board and session spawn surface. Use when the user wants to hand a task from a planning surface to an executing head, queue work for later, read or update the job board, close a job, wake an asleep head, or start a fresh Claude Code or Codex session locally. Triggers on "queue a job", "dispatch this", "hand this off", "put this on the board", "job board", "spawn a session", "start a head", "wake the other head", "submit a job", and "archive that job". This is the loop from a planning surface to the receiver to a running CLI head.
 ---
 
+**Audience:** Theorem-internal subagent and MCP-connected head. A rule that binds only one audience names it.
+
 # dispatch
 
 The job/spawn surface for the local loop: a planning surface puts a typed job

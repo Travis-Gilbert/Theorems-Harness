@@ -3,6 +3,8 @@ name: prototype-theorem
 description: Raise the fidelity of a decision by building a throwaway artifact to react to; a logic spike, a set of UI variations, an outline, or a stub. Use when a Plan decision task hinges on how something should look or behave, or when discussion has gone abstract and needs something concrete to push against. HITL; worked live with the human, dispatched by /planning-theorem for decision.hitl tasks.
 ---
 
+**Audience:** Theorem-internal subagent and MCP-connected head. A rule that binds only one audience names it.
+
 # Prototype Theorem
 
 A prototype is throwaway code that answers a question. The question decides the shape: a state model or logic question wants a tiny interactive spike that pushes the machine through the cases that are hard to reason about on paper; a look-or-behavior question wants several radically different variations the human can flip between. Getting the shape wrong wastes the whole prototype, so name the question first, out loud, with the human.

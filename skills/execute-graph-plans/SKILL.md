@@ -1,14 +1,13 @@
 ---
-description: >
-  Traverse a compiled plan graph on the Theorem substrate, one move per turn,
-  until fixpoint. Harness binding: requires the Theorem MCP surface (plan tool
-  with the motion actions, multihead, coordination, encode, continuity_pack).
-  Agents without those tools use the portable binding of this skill.
+name: execute-graph-plans
+description: Traverse a compiled plan graph on the Theorem substrate, one move per turn, until fixpoint. Harness binding: requires the Theorem MCP surface (plan tool with the motion actions, multihead_*, coordination_*, encode, continuity_pack). Agents without those tools use the portable binding of this skill.
 ---
+
+**Audience:** Theorem-internal subagent and MCP-connected head. A rule that binds only one audience names it.
 
 You are a head moving through a **board** that outlives you. The **window** is disposable. Carry in context only what the substrate cannot carry in structure.
 
-You hold an **autonomy box**: the budget, clock, and trust tier granted at the charting gate. Inside it you are silent. The gate was the human contact; everything after it is exception-only.
+You hold an **authority grant**: the trust tier, allowed external effects, live provider authority, and protected state granted at the charting gate. Inside it you are silent. The gate was the human contact; everything after it is exception-only.
 
 **Bold terms** are defined in [`GLOSSARY.md`](GLOSSARY.md), a sibling file. Read a term there before applying it.
 
@@ -31,6 +30,7 @@ The four motions are special forms evaluated one program per turn (`board.eval`)
 | gate | the done-transition: refused unless dependencies done, verify receipt submitted, proof passed |
 | traverse | `(traverse edge :handoff h :receipts r)`; externally `plan transition` done + `coordination_reflection` handoff + `continuity_pack` |
 | park | `(park node :reason why)`; externally `plan transition` `failed` / `pending` with a durable reason |
+| shed | `(shed :to graph)` via `encode` + `continuity_pack` — the fifth motion, the window motion; a full window is shed, not parked |
 | attend / navigator | `(attend region)`; `coordination_room` / `coordination_intent`, read-only |
 | disagreement row | planner-said / agent-did, keyed to the plan, closed later by outcome |
 | repair ladder | the record is `plan replay` / `harness_replay`; `plan query=stalled` quantifies churn |
@@ -42,9 +42,9 @@ Reference plans by id/digest. Never re-encode plan content into messages, coordi
 
 ## 1. Arrive
 
-Spawn at an edge, taking the departing **handoff** from the edge itself, or resume from a **continuation**: `continuity_pack` + `plan reenter` (releases stale claims, returns next-actionable packets) + `plan what_changed` since the anchor revision + the active frontier, held leases, transient windows, and the **budget clock**. Session rebirth is the crash semantics, not a feature.
+Spawn at an edge, taking the departing **handoff** from the edge itself, or resume from a **continuation**: `continuity_pack` + `plan reenter` (releases stale claims, returns next-actionable packets) + `plan what_changed` since the anchor revision + the active frontier, held leases, transient windows, and the **authority grant**. Session rebirth is the crash semantics, not a feature.
 
-Done when your brief holds the occupied node's **blueprint**, the **interfaces** of adjacent nodes, **gists** of the remaining path, the **dependents** line, and your remaining **autonomy box** - nothing beyond that. No non-adjacent blueprint enters a brief.
+Done when your brief holds the occupied node's **blueprint**, the **interfaces** of adjacent nodes, **gists** of the remaining path, the **dependents** line, and your remaining **authority grant** — and nothing beyond that. No non-adjacent blueprint enters a brief.
 
 ## 2. Choose contestably
 
@@ -79,11 +79,10 @@ On a question, the four-rung **resolve ladder** (`(resolve question)`, per SPEC-
 3. **Research probe** — spawn a `decision.afk` node attached at the blocking edge, an observation node priced by information gain per token.
 4. **Decide** — `plan decide`. The rungs converged; record the question, the options, the evidence per option, the choice, its **reversibility class**, and the retraction path, then continue.
 
-Rung 4 is where the question ends. Reaching the user is the exception inside it, taken through `plan escalate`, and only for one of three reasons:
+Rung 4 is where the question ends. Reaching the user is the exception inside it, taken through `plan escalate`, and only for one of two reasons:
 
 - **Authority** — the action is irreversible or above your granted trust tier.
 - **User-held information** — a preference, credential, or fact about the world outside the graph, declared on the node at charting.
-- **Budget exhaustion** — and here **park** with a reason is usually better than a question.
 
 **Recommendation in hand?** Then you are deciding, not asking. If you can name the option you would pick and the retraction path if it is wrong, the question is resolved and `plan decide` is the move. The gate will refuse the escalation anyway, and its refusal will tell you exactly this.
 
@@ -93,7 +92,7 @@ Done when the rung that resolved it is recorded, and every rung below it is eith
 
 ## 5. Discharge before you move
 
-The **merge path** holds until every **obligation** on the node has replayable discharge evidence: `plan prove` receipts, `plan discharge_obligation` records, the verify sibling's receipt. Self-check against acceptance criteria, then offer the work to the **gate** — the done-transition, which the engine refuses unless dependencies are done, the verify receipt is submitted, and the declared proof passed. A refusal is a finding to report, not an obstacle to narrate around.
+The **merge path** holds until every **obligation** on the node has replayable discharge evidence graded by **evidence grade**: `plan prove` receipts, `plan discharge_obligation` records, the verify sibling's receipt. Self-check against acceptance criteria, then offer the work to the **gate** — the done-transition, which the engine refuses unless dependencies are done, the verify receipt is submitted, and the declared proof passed. A refusal is a finding to report, not an obstacle to narrate around.
 
 Done when the gate passed. Believing it would pass is not the same event.
 
@@ -127,7 +126,7 @@ Done when every proposal carries a disposition, your authored side is either a t
 
 The plan is done when no rewrite applies and every obligation is discharged — `plan close` is refused until every task is accepted or superseded and every obligation verified.
 
-If the **budget clock** expires first, **park** the node with a reason. A parked node with a reason is resumable; a hollow completion is not.
+If the **window** fills before fixpoint, **shed** and continue — a full window is not a block. A **park** names a condition the graph can witness; a parked node with a reason is resumable, a hollow completion is not.
 
 Report to the user once, at fixpoint or at a park: what was done, what was decided and why, what remains. One report beats twelve check-ins carrying the same information.
 

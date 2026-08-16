@@ -3,6 +3,8 @@ name: planning-theorem
 description: Chart a fuzzy ask into a durable Plan on the Theorem substrate, then work its decision frontier one decision per session. Use when an idea arrives wrapped in fog, when work spans more than one session or head, when acceptance criteria are not yet locked, when the user asks for a plan, map, spec, migration, or handoff, or when a failed execution needs a re-plan. Emits a plan id that /execute claims from; dispatches decisions to /research-theorem and /prototype-theorem.
 ---
 
+**Audience:** Theorem-internal subagent and MCP-connected head. A rule that binds only one audience names it.
+
 # Planning Theorem
 
 Planning finds the way to a destination; it does not walk it. The plan is a durable graph on the substrate that nobody owns and everything acts on: the plan holds the sessions, never the reverse. This skill is the hub. It charts the map and works the decision frontier; resolvers do the resolving, and /execute walks the route. The pull to start implementing is the signal that the map has reached its edge: stop and hand off the plan id.
@@ -33,8 +35,8 @@ Invoked with a loose idea. Charting is one session's work and hand-resolves noth
 
 1. **Name the destination** with `create_goal` before anything else; without a fixed edge there is no test for out-of-scope and fog expands forever. Done when reaching the end can be stated in one or two lines across user-visible, system, data, and operational terms.
 2. **Fan breadth-first with the human**: surface the open decisions, the first takeable steps, and the fog, across the whole space rather than deep on any thread. If this surfaces no fog and the work fits one session, there is no Plan node: hand the work to /execute and stop. Done when every known question is either sharp enough to be a task or written down as fog.
-3. **Chart against live source, not historical specs**: `plan create` with only the tasks specifiable now, each grounded in a real file path, test seam, or runtime surface, wired with dependency edges. Type each task `decision` or `build`, and `hitl` or `afk`. Declare each task's proof command and the class of evidence that proof produces at creation. The substrate does its part on create: acceptance criteria compile to obligations, and the unknowns harvest runs over the indexed repo; plan lock refuses on an uncovered spec section or an unbudgeted unknown, so treat a lock refusal as a finding about the map, never as an obstacle to route around. Done when `plan query frontier` returns at least one takeable task and the plan locks clean.
-4. **Fire the research fan-out**: dispatch /research-theorem for each `decision.afk` task, in parallel. Fan-out is for open-world research; the graph carries the findings back, so no session waits on another. Done when every research task is dispatched or consciously held.
+3. **Chart against live source, not historical specs**: `plan create` with only the tasks specifiable now, each grounded in a real file path, test seam, or runtime surface, wired with dependency edges. Type each task `decision` or `build`, and `hitl` or `afk`. Declare each task's proof command and the evidence grade that proof produces at creation. The substrate does its part on create: acceptance criteria compile to obligations, and the unknowns harvest runs over the indexed repo; plan lock refuses on an uncovered spec section or an unbudgeted unknown, so treat a lock refusal as a finding about the map, never as an obstacle to route around. Done when `plan query frontier` returns at least one takeable task and the plan locks clean.
+4. **Fire the research fan-out**: dispatch /research-theorem for each `decision.afk` task, in parallel. Fan-out is for open-world research; within Theorem's subagent topology the graph carries the findings back, so no session waits on another. An MCP-connected head coordinates directly through `coordinate` and `coordination_room` rather than waiting on the graph alone. Done when every research task is dispatched or consciously held.
 5. **Emit the map and stop**: `plan render` for the markdown and mermaid projections, then hand the plan id and digest to the user. Done when the id is in the user's hands and nothing has been implemented.
 
 ## Work the frontier
@@ -43,7 +45,7 @@ Invoked with a plan id, and optionally a task. Never resolve more than one decis
 
 1. **Enter through the map**: the live map above, or on cold resume `reenter`, then `what_changed` since the last known version, then `plan render` only if the full view is needed. Done when the frontier, the blocked set, and the open fog are in front of you.
 2. **Choose one decision task**: the user's named task, else the frontier decision the plan's own scores mark most fragile (a goal with a single derivation researches first). Claim it before any work; the claim is what lets concurrent sessions skip it. Done when the claim is held.
-3. **Resolve it by kind**, dispatching to the resolver the kind names (table below). A `hitl` task resolves only through live exchange; standing in for the human's side records an invented answer as decided and corrupts the plan silently. Done when the answer exists with the evidence class its claim requires.
+3. **Resolve it by kind**, dispatching to the resolver the kind names (table below). A `hitl` task resolves only through live exchange; standing in for the human's side records an invented answer as decided and corrupts the plan silently. Done when the answer exists with the evidence grade its claim requires.
 4. **Record and redraw**: `assert_facts` records the answer and the task transitions; `decompose` graduates whatever fog became specifiable, clearing that patch so it lives only as its new tasks; `replan_subtree` redraws what the answer invalidated; `close_goal` retires what the answer pushed past the destination. A failed or deviating transition fires the retraction lane on its own: the falsified assumption retracts, the report appends to the plan, and re-planning reads the surviving explanations plus the replay, never prose memory. Done when no resolved question appears in both the fact sheet and the fog.
 5. **Close the session**: re-render the projections, read `plan analyze` and `plan converge` at the checkpoint (refinement churn on one task is the re-plan signal as a number), and stop. When no fog remains and nothing is left to decide before someone builds, the map is done: hand the plan id to /execute.
 
@@ -61,7 +63,7 @@ Invoked with a plan id, and optionally a task. Never resolve more than one decis
 
 - `plan query progress` and `frontier` after create, to confirm the plan is workable rather than merely written.
 - `plan converge` and `plan analyze` at checkpoints.
-- Every task carries a declared proof command and the evidence class that proof produces.
+- Every task carries a declared proof command and the evidence grade that proof produces.
 - Every section of a source spec maps to at least one task.
 - No resolved question appears in both the fact sheet and the fog.
 - `plan replay` before re-planning a failed execution: the replay is the record of what happened; a head's memory is not.
@@ -74,7 +76,7 @@ Invoked with a plan id, and optionally a task. Never resolve more than one decis
 - Recording an invented answer on a HITL task.
 - Hand-minting task ids; aliases are for prose, the substrate id is the key.
 - Re-encoding plan content into coordination records, messages, or reflections instead of referencing by id and digest.
-- Marking a task verified on evidence weaker than the class its claim requires.
+- Marking a task verified on evidence weaker than the grade its claim requires.
 - Batching deferrals into a quiet non-goals table instead of surfacing each one for consent.
 - Adding wall-clock, compute, or cost estimates to a task.
 
