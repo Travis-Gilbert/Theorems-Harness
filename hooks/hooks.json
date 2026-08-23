@@ -86,6 +86,19 @@
           }
         ]
       }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "shell": "bash",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/wiring-review-stop.sh\"",
+            "timeout": 60,
+            "statusMessage": "Reviewing wiring for new orphans"
+          }
+        ]
+      }
     ]
   }
 }
