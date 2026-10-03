@@ -1,0 +1,485 @@
+{
+  "capability_digest": "sha256:d072e1566a2e50be441409bd887d3ac724c6f9a3c7488229ffcbb34bc621595b",
+  "capability_manifests": [
+    ".harness/code-kg-manifest.json"
+  ],
+  "external_engines": [
+    {
+      "effect": "write",
+      "engine": "ghidra-headless+local-build-toolchain",
+      "modes": [
+        "binary_from_source",
+        "build_binary",
+        "build_from_source"
+      ],
+      "product_tool": "reconstruct",
+      "selector_keys": [
+        "mode",
+        "kind",
+        "surface",
+        "tool",
+        "native_tool",
+        "nativeTool",
+        "operation"
+      ]
+    }
+  ],
+  "generated_by": "theorem-harness-package",
+  "hosts": {
+    "claude_code": {
+      "additional_context_events": [
+        "SessionStart",
+        "UserPromptSubmit",
+        "PreToolUse",
+        "PostToolUse",
+        "PostToolUseFailure"
+      ],
+      "code_context_events": [
+        "SessionStart"
+      ],
+      "context_events": [
+        "UserPromptSubmit",
+        "PreToolUse",
+        "PostToolUse",
+        "PostToolUseFailure"
+      ],
+      "events": [
+        [
+          "SessionStart",
+          "session_start"
+        ],
+        [
+          "UserPromptSubmit",
+          "prompt_submitted"
+        ],
+        [
+          "PreToolUse",
+          "before_tool"
+        ],
+        [
+          "PostToolUse",
+          "after_tool"
+        ],
+        [
+          "PostToolUseFailure",
+          "after_tool"
+        ],
+        [
+          "Stop",
+          "turn_end"
+        ],
+        [
+          "StopFailure",
+          "turn_end"
+        ],
+        [
+          "SessionEnd",
+          "session_end"
+        ]
+      ],
+      "unavailable": [
+        "interrupt"
+      ]
+    },
+    "codex": {
+      "additional_context_events": [
+        "SessionStart",
+        "UserPromptSubmit",
+        "PreToolUse",
+        "PostToolUse"
+      ],
+      "code_context_events": [
+        "SessionStart"
+      ],
+      "context_events": [
+        "UserPromptSubmit",
+        "PreToolUse",
+        "PostToolUse"
+      ],
+      "events": [
+        [
+          "SessionStart",
+          "session_start"
+        ],
+        [
+          "UserPromptSubmit",
+          "prompt_submitted"
+        ],
+        [
+          "PreToolUse",
+          "before_tool"
+        ],
+        [
+          "PostToolUse",
+          "after_tool"
+        ],
+        [
+          "Stop",
+          "turn_end"
+        ]
+      ],
+      "unavailable": [
+        "session_end",
+        "interrupt"
+      ]
+    }
+  },
+  "mapping_version": 1,
+  "notice": "Rendered from theorem-harness-core; a hand edit here is drift.",
+  "receipt_meta_key": "theorem/route_receipt",
+  "route_schema_version": 1,
+  "routes": [
+    {
+      "disposition": "native",
+      "effect": null,
+      "kind": "native",
+      "native_target": "query_data",
+      "product_tool": "query_data",
+      "semantic_owner": "rustyred-thg-mcp::data_api",
+      "transport": "mcp"
+    },
+    {
+      "disposition": "native",
+      "effect": null,
+      "kind": "native",
+      "native_target": "retrieve_memory",
+      "product_tool": "retrieve_memory",
+      "semantic_owner": "rustyred-thg-mcp::data_api",
+      "transport": "mcp"
+    },
+    {
+      "disposition": "native",
+      "effect": null,
+      "kind": "native",
+      "native_target": "turn_start",
+      "product_tool": "turn_start",
+      "semantic_owner": "rustyred-thg-mcp::data_api",
+      "transport": "mcp"
+    },
+    {
+      "disposition": "native",
+      "effect": null,
+      "kind": "native",
+      "native_target": "evidence_bundle",
+      "product_tool": "evidence_bundle",
+      "semantic_owner": "rustyred-thg-mcp::data_api",
+      "transport": "mcp"
+    },
+    {
+      "disposition": "native",
+      "effect": null,
+      "kind": "native",
+      "native_target": "graphql_query",
+      "product_tool": "graphql_query",
+      "semantic_owner": "rustyred-thg-mcp::query_surface",
+      "transport": "mcp"
+    },
+    {
+      "disposition": "native",
+      "effect": null,
+      "kind": "native",
+      "native_target": "graphql_mutate",
+      "product_tool": "graphql_mutate",
+      "semantic_owner": "rustyred-thg-mcp::query_surface",
+      "transport": "mcp"
+    },
+    {
+      "disposition": "native",
+      "effect": null,
+      "kind": "native",
+      "native_target": "graphql_introspect",
+      "product_tool": "graphql_introspect",
+      "semantic_owner": "rustyred-thg-mcp::query_surface",
+      "transport": "mcp"
+    },
+    {
+      "disposition": "native",
+      "effect": null,
+      "kind": "native",
+      "native_target": "compute_code",
+      "product_tool": "compute_code",
+      "semantic_owner": "rustyred-thg-code::code_router",
+      "transport": "mcp"
+    },
+    {
+      "disposition": "native",
+      "effect": null,
+      "kind": "native",
+      "native_target": "code_ingest",
+      "product_tool": "code_ingest",
+      "semantic_owner": "rustyred-thg-code",
+      "transport": "mcp"
+    },
+    {
+      "disposition": "native",
+      "effect": null,
+      "kind": "native",
+      "native_target": "understand_code",
+      "product_tool": "understand_code",
+      "semantic_owner": "rustyred-thg-code",
+      "transport": "mcp"
+    },
+    {
+      "disposition": "native",
+      "effect": null,
+      "kind": "native",
+      "native_target": "impact",
+      "product_tool": "impact",
+      "semantic_owner": "rustyred-thg-code",
+      "transport": "mcp"
+    },
+    {
+      "disposition": "native",
+      "effect": null,
+      "kind": "native",
+      "native_target": "oracle",
+      "product_tool": "oracle",
+      "semantic_owner": "rustyred-thg-code",
+      "transport": "mcp"
+    },
+    {
+      "disposition": "native",
+      "effect": null,
+      "kind": "native",
+      "native_target": "observe_web",
+      "product_tool": "observe_web",
+      "semantic_owner": "rustyred-web",
+      "transport": "mcp"
+    },
+    {
+      "disposition": "native",
+      "effect": null,
+      "kind": "native",
+      "native_target": "datawave_ingest",
+      "product_tool": "datawave_ingest",
+      "semantic_owner": "rustyred-thg-datawave",
+      "transport": "mcp"
+    },
+    {
+      "disposition": "native",
+      "effect": null,
+      "kind": "native",
+      "native_target": "reconstruct_binary",
+      "product_tool": "reconstruct_binary",
+      "semantic_owner": "rustyred-thg-reconstruct",
+      "transport": "mcp"
+    },
+    {
+      "disposition": "native",
+      "effect": null,
+      "kind": "native",
+      "native_target": "reverse_engineer_compose",
+      "product_tool": "reverse_engineer_compose",
+      "semantic_owner": "rustyred-thg-code::reverse_engineer",
+      "transport": "mcp"
+    },
+    {
+      "disposition": "native",
+      "effect": null,
+      "kind": "native",
+      "native_target": "harness_run",
+      "product_tool": "harness_run",
+      "semantic_owner": "theorem-harness-runtime",
+      "transport": "mcp"
+    },
+    {
+      "disposition": "native",
+      "effect": null,
+      "kind": "native",
+      "native_target": "harness_prepare",
+      "product_tool": "harness_prepare",
+      "semantic_owner": "theorem-harness-runtime",
+      "transport": "mcp"
+    },
+    {
+      "disposition": "native",
+      "effect": null,
+      "kind": "native",
+      "native_target": "harness_append_transition",
+      "product_tool": "harness_append_transition",
+      "semantic_owner": "theorem-harness-runtime",
+      "transport": "mcp"
+    },
+    {
+      "disposition": "native",
+      "effect": null,
+      "kind": "native",
+      "native_target": "composed_agent_run",
+      "product_tool": "composed_agent_run",
+      "semantic_owner": "theorem-harness-runtime",
+      "transport": "mcp"
+    },
+    {
+      "disposition": "native",
+      "effect": null,
+      "kind": "native",
+      "native_target": "multihead_run",
+      "product_tool": "multihead_run",
+      "semantic_owner": "rustyred-thg-mcp::plan_substrate",
+      "transport": "mcp"
+    },
+    {
+      "disposition": "native",
+      "effect": null,
+      "kind": "native",
+      "native_target": "plan",
+      "product_tool": "plan",
+      "semantic_owner": "rustyred-thg-mcp::plan_substrate",
+      "transport": "mcp"
+    },
+    {
+      "disposition": "native",
+      "effect": null,
+      "kind": "native",
+      "native_target": "spawn_session",
+      "product_tool": "spawn_session",
+      "semantic_owner": "theorem-harness-runtime",
+      "transport": "mcp"
+    },
+    {
+      "disposition": "native",
+      "effect": null,
+      "kind": "native_alias",
+      "native_target": "rustyred_thg_index_spine",
+      "product_tool": "index_spine",
+      "semantic_owner": "rustyred-thg-mcp::index_spine",
+      "transport": "mcp"
+    },
+    {
+      "disposition": "absorb",
+      "effect": null,
+      "kind": "lowered",
+      "native_target": "semantic_grep",
+      "product_tool": "semantic_grep",
+      "semantic_owner": "rustyred-thg-code::code_router",
+      "transport": "mcp"
+    },
+    {
+      "disposition": "absorb",
+      "effect": null,
+      "kind": "lowered",
+      "native_target": "memory_grep",
+      "product_tool": "memory_grep",
+      "semantic_owner": "rustyred-thg-mcp::data_api",
+      "transport": "mcp"
+    },
+    {
+      "disposition": "absorb",
+      "effect": null,
+      "kind": "lowered",
+      "native_target": "mgrep",
+      "product_tool": "mgrep",
+      "semantic_owner": "theorem-harness-core::host_routes",
+      "transport": "mcp"
+    },
+    {
+      "disposition": "absorb",
+      "effect": null,
+      "kind": "lowered",
+      "native_target": "turn_start",
+      "product_tool": "index_context",
+      "semantic_owner": "rustyred-thg-mcp::data_api",
+      "transport": "mcp"
+    },
+    {
+      "disposition": "absorb",
+      "effect": null,
+      "kind": "lowered",
+      "native_target": "reconstruct",
+      "product_tool": "reconstruct",
+      "semantic_owner": "rustyred-thg-reconstruct",
+      "transport": "mcp"
+    },
+    {
+      "disposition": "absorb",
+      "effect": null,
+      "kind": "lowered",
+      "native_target": "harness_capabilities",
+      "product_tool": "capability_manifest",
+      "semantic_owner": "theorem-harness-core::host_capability",
+      "transport": "mcp"
+    },
+    {
+      "disposition": "absorb",
+      "effect": null,
+      "kind": "lowered",
+      "native_target": "harness_capabilities",
+      "product_tool": "prepare_context",
+      "semantic_owner": "theorem-harness-core::host_capability",
+      "transport": "mcp"
+    },
+    {
+      "disposition": "absorb",
+      "effect": null,
+      "kind": "lowered",
+      "native_target": "harness_host_event",
+      "product_tool": "write_receipt",
+      "semantic_owner": "theorem-harness-runtime::host_lifecycle",
+      "transport": "mcp"
+    },
+    {
+      "disposition": "absorb",
+      "effect": null,
+      "kind": "lowered",
+      "native_target": "compute_code",
+      "product_tool": "session_code_context",
+      "semantic_owner": "rustyred-thg-code::code_router",
+      "transport": "mcp"
+    },
+    {
+      "disposition": "native",
+      "effect": "read",
+      "kind": "native_http",
+      "native_target": "/harness/compound-engineering",
+      "product_tool": "compound_engineering",
+      "semantic_owner": "theorem-harness-runtime::compound_engineering",
+      "transport": "http"
+    },
+    {
+      "disposition": "host_packaging",
+      "effect": "read",
+      "kind": "host_utility",
+      "native_target": null,
+      "product_tool": "grep",
+      "semantic_owner": "host::grep",
+      "transport": "host"
+    },
+    {
+      "disposition": "host_packaging",
+      "effect": "read",
+      "kind": "host_utility",
+      "native_target": null,
+      "product_tool": "doctor",
+      "semantic_owner": "host::doctor",
+      "transport": "host"
+    },
+    {
+      "disposition": "host_packaging",
+      "effect": "read",
+      "kind": "host_utility",
+      "native_target": null,
+      "product_tool": "remote_doctor",
+      "semantic_owner": "host::remote_doctor",
+      "transport": "host"
+    },
+    {
+      "disposition": "host_packaging",
+      "effect": "read",
+      "kind": "host_utility",
+      "native_target": null,
+      "product_tool": "capability_scorecards",
+      "semantic_owner": "host::scorecards",
+      "transport": "host"
+    },
+    {
+      "disposition": "absorb",
+      "effect": null,
+      "kind": "retired",
+      "native_target": null,
+      "product_tool": "native_mcp_call",
+      "semantic_owner": "theorem-harness-core::host_routes",
+      "transport": "mcp"
+    }
+  ],
+  "schema_version": 1
+}
