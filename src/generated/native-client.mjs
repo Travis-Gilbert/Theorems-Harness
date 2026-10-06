@@ -59,22 +59,59 @@ function headers(env, accept) {
   return out;
 }
 
-async function request(url, init, label, timeoutMs) {
+async function request(url, init, label, timeoutMs, allowEmpty = false) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
     const response = await fetch(url, { ...init, signal: controller.signal });
     const body = parseBody(await response.text());
-    if (!response.ok || !body) {
-      return { ok: false, reason: "http_error", message: `${label}: HTTP ${response.status}` };
+    if (!response.ok || (!body && !allowEmpty)) {
+      return { ok: false, reason: "http_error", message: `${label}: HTTP ${response.status}`, httpStatus: response.status };
     }
-    return { ok: true, body };
+    return { ok: true, body, responseHeaders: response.headers };
   } catch (error) {
     const reason = error?.name === "AbortError" ? "timeout" : "unreachable";
     return { ok: false, reason, message: `${label}: ${reason}` };
   } finally {
     clearTimeout(timer);
   }
+}
+
+// A session belongs to one endpoint and credential. Share the initialization
+// promise so simultaneous tool discovery/calls cannot race the handshake.
+const sessions = new Map();
+const PROTOCOL_VERSION = "2025-03-26";
+
+function post(method, params, env, session, notification = false) {
+  return {
+    method: "POST",
+    headers: {
+      ...headers(env, "application/json, text/event-stream"),
+      "content-type": "application/json",
+      ...(session?.id ? { "mcp-session-id": session.id } : {}),
+      ...(session ? { "mcp-protocol-version": session.protocolVersion } : {}),
+    },
+    body: JSON.stringify({ jsonrpc: "2.0", ...(notification ? {} : { id: method }), method, params }),
+  };
+}
+
+async function initialize(endpoint, env, timeoutMs) {
+  const answer = await request(endpoint, post("initialize", {
+    protocolVersion: PROTOCOL_VERSION,
+    capabilities: {},
+    clientInfo: { name: "theorems-harness-host", version: "1.0.0" },
+  }, env), "initialize", timeoutMs);
+  if (!answer.ok) return answer;
+  if (answer.body.error || !answer.body.result?.protocolVersion) {
+    return { ok: false, reason: "rpc_error", message: "initialize: native server refused the MCP handshake" };
+  }
+  const session = {
+    id: answer.responseHeaders.get("mcp-session-id"),
+    protocolVersion: answer.body.result.protocolVersion,
+  };
+  const initialized = await request(endpoint, post("notifications/initialized", {}, env, session, true),
+    "notifications/initialized", timeoutMs, true);
+  return initialized.ok ? { ok: true, session } : initialized;
 }
 
 // One JSON-RPC request. Resolves to `{ ok, result }` or
@@ -84,19 +121,32 @@ export async function rpc(method, params = {}, { env = process.env, timeoutMs = 
   if (!endpoint) {
     return { ok: false, reason: "endpoint_unconfigured", message: `set ${URL_ENV[0]}` };
   }
+  const key = JSON.stringify([endpoint, firstEnv(TOKEN_ENV, env)]);
+  if (!sessions.has(key)) sessions.set(key, initialize(endpoint, env, timeoutMs));
+  const initialization = sessions.get(key);
+  const invalidate = () => {
+    if (sessions.get(key) === initialization) sessions.delete(key);
+  };
+  const ready = await initialization;
+  if (!ready.ok) {
+    invalidate();
+    return ready;
+  }
   const answer = await request(
     endpoint,
-    {
-      method: "POST",
-      headers: { ...headers(env, "application/json, text/event-stream"), "content-type": "application/json" },
-      body: JSON.stringify({ jsonrpc: "2.0", id: method, method, params }),
-    },
+    post(method, params, env, ready.session),
     method,
     timeoutMs,
   );
-  if (!answer.ok) return answer;
+  if (!answer.ok) {
+    // A stale session is discarded for the next call. This call may have
+    // effects, so it is never automatically replayed after a handshake.
+    if (answer.httpStatus === 404) invalidate();
+    return answer;
+  }
   if (answer.body.error) {
     const { message, code } = answer.body.error;
+    if (["mcp_session_uninitialized", "mcp_session_not_found"].includes(answer.body.error.data?.code)) invalidate();
     return { ok: false, reason: "rpc_error", message: `${method}: ${message ?? code}` };
   }
   return { ok: true, result: answer.body.result ?? {} };
@@ -143,14 +193,24 @@ function structured(result) {
   }
 }
 
-// Streamable HTTP servers may answer with one SSE `data:` frame.
+// Ordinary HTTP routes return their complete JSON body. MCP may answer with
+// SSE keepalives/notifications before its result frame.
 function parseBody(text) {
-  const json = text.trim().startsWith("{")
-    ? text
-    : text.split("\n").filter((line) => line.startsWith("data:")).map((line) => line.slice(5)).join("");
   try {
-    return JSON.parse(json);
+    return JSON.parse(text);
   } catch {
-    return null;
+    // A streamable MCP response is framed as SSE rather than raw JSON.
   }
+  const frames = text.split(/\r?\n\r?\n/)
+    .map((frame) => frame.split(/\r?\n/).filter((line) => line.startsWith("data:"))
+      .map((line) => line.slice(5).trimStart()).join("\n"));
+  for (const frame of frames) {
+    try {
+      const value = JSON.parse(frame);
+      if (Object.hasOwn(value, "result") || Object.hasOwn(value, "error")) return value;
+    } catch {
+      // Ignore SSE keepalives and notification frames.
+    }
+  }
+  return null;
 }

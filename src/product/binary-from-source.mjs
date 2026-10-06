@@ -24,7 +24,32 @@ import {
 import { fileURLToPath } from "node:url";
 import { spawn } from "node:child_process";
 
-import { callNativeMcpTool } from "./native-mcp.mjs";
+import { callTool } from "../generated/native-client.mjs";
+
+async function callNativeMcpTool({ input = {}, nativeTool, arguments: args }) {
+  const env = { ...process.env };
+  const endpoint = input.mcp_url ?? input.mcpUrl ?? input.remote_url ?? input.remoteUrl;
+  if (endpoint !== undefined) {
+    for (const key of ["THEOREMS_HARNESS_MCP_URL", "THEOREM_HARNESS_MCP_URL", "THEOREM_MCP_URL",
+      "THEOREMS_HARNESS_REMOTE_URL", "THEOREM_HARNESS_REMOTE_URL", "THEOREM_REMOTE_URL", "RUSTYRED_THG_MCP_URL"]) delete env[key];
+    env.THEOREMS_HARNESS_MCP_URL = String(endpoint);
+  }
+  const token = input.token ?? input.remote_token ?? input.remoteToken;
+  if (token !== undefined) {
+    for (const key of ["THEOREM_API_TOKEN", "THEOREM_HARNESS_API_TOKEN",
+      "THEOREMS_HARNESS_REMOTE_TOKEN", "THEOREM_HARNESS_REMOTE_TOKEN"]) delete env[key];
+    env.THEOREM_API_TOKEN = String(token);
+  }
+  const timeout = input.timeout_ms ?? input.timeoutMs;
+  const timeoutMs = timeout === undefined ? undefined : Number(timeout);
+  if (timeoutMs !== undefined && (!Number.isFinite(timeoutMs) || timeoutMs <= 0 || timeoutMs > 2_147_483_647)) {
+    throw new RangeError("timeout_ms must be a positive finite timer duration");
+  }
+  const answer = await callTool(nativeTool, args, { env, timeoutMs });
+  return answer.ok
+    ? { ok: true, status: "ok", result: answer.content }
+    : { ok: false, status: "degraded", reason: answer.reason, message: answer.message };
+}
 
 const DEFAULT_BUILD_TIMEOUT_MS = 10 * 60 * 1000;
 const DEFAULT_GHIDRA_TIMEOUT_SECONDS = 30;

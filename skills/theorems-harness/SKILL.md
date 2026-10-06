@@ -66,7 +66,7 @@ Use these as abilities inside one run, not as competing products. Each row names
 | Another head may overlap the work, or coordination is wanted | `harness-coordinate` |
 | A graph or tabular question has an exact answer, or connectors/affordances are involved | `affordance-router` |
 | A task should be queued or a head spawned from the job board | `dispatch` |
-| A bounded Python feature should be ported to Rust | `feature-port` |
+| A bounded Python feature should be ported to Rust | `rust-engineering` |
 | The user asks to write, debug, or review Rust | `rust-engineering` |
 | A repo, URL, binary, API, or workflow should be reverse-engineered | `reverse-engineer` |
 | Context should be indexed or memory queried before acting | `index` |
