@@ -6,7 +6,6 @@ import { fileURLToPath } from "node:url";
 
 import { createRelay } from "../generated/relay.mjs";
 import { rpc } from "../generated/native-client.mjs";
-import { queryGrep } from "../product/grep.mjs";
 import { runRemoteDoctor } from "../product/remote-doctor.mjs";
 import { loadCapabilityScorecards } from "../product/scorecards.mjs";
 import { reconstructBinaryFromSource } from "../product/binary-from-source.mjs";
@@ -22,7 +21,10 @@ const hostTools = {
       description: "Search files in the current workspace for literal or regular expression matches.",
       inputSchema: { type: "object", properties: { query: { type: "string" }, pattern: { type: "string" }, cwd: { type: "string" } } },
     },
-    run: queryGrep,
+    run: async (args) => {
+      const { queryGrep } = await import("../product/grep.mjs");
+      return queryGrep(args);
+    },
   },
   doctor: {
     definition: {
