@@ -21,43 +21,9 @@ const DEFAULT_MAX_FILES = 1_500;
 const DEFAULT_MAX_FILE_BYTES = 1_500_000;
 const DEFAULT_MAX_TOTAL_BYTES = 18_000_000;
 const DEFAULT_CONTEXT_LINES = 2;
-const DEFAULT_CHUNK_LINES = 48;
-const DEFAULT_CHUNK_OVERLAP = 8;
 const MAX_LIMIT = 500;
 const MAX_CONTEXT_LINES = 10;
-const MAX_CHUNK_LINES = 120;
 const MAX_PATTERN_LENGTH = 4_000;
-const STOP_WORDS = new Set([
-  "a",
-  "an",
-  "and",
-  "are",
-  "as",
-  "at",
-  "be",
-  "by",
-  "for",
-  "from",
-  "how",
-  "in",
-  "is",
-  "it",
-  "of",
-  "on",
-  "or",
-  "that",
-  "the",
-  "this",
-  "to",
-  "what",
-  "when",
-  "where",
-  "which",
-  "who",
-  "why",
-  "with",
-]);
-
 export async function queryGrep(input = {}, options = {}) {
   const productTool = options.productTool ?? "grep";
   const query = searchText(input);
@@ -161,111 +127,6 @@ export async function queryGrep(input = {}, options = {}) {
     formatting: {
       style: "code-neighborhood",
       note: "Each result includes the nearest symbol plus before/after context lines.",
-    },
-  };
-}
-
-export async function querySemanticGrep(input = {}, options = {}) {
-  const productTool = options.productTool ?? "semantic_grep";
-  const query = searchText(input);
-  if (!query) {
-    return degraded(productTool, "empty_query", {
-      message: `${productTool} requires a non-empty query or pattern.`,
-    });
-  }
-
-  const root = resolveRoot(input);
-  const config = {
-    ...searchConfig(input, root),
-    chunkLines: clampPositive(input.chunk_lines ?? input.chunkLines, DEFAULT_CHUNK_LINES, MAX_CHUNK_LINES),
-    chunkOverlap: clampPositive(input.chunk_overlap ?? input.chunkOverlap, DEFAULT_CHUNK_OVERLAP, MAX_CHUNK_LINES),
-  };
-  const collection = await collectFiles(root, config);
-  if (!collection.ok) {
-    return degraded(productTool, collection.reason, collection);
-  }
-
-  const queryTokens = significantTokens(query);
-  if (!queryTokens.length) {
-    return degraded(productTool, "empty_query", {
-      message: `${productTool} could not extract searchable terms from the query.`,
-    });
-  }
-
-  const candidates = [];
-  const counts = {
-    files_scanned: 0,
-    chunks_scored: 0,
-    chunks_returned: 0,
-    files_skipped_binary: 0,
-    files_skipped_large: collection.skipped_large,
-    files_skipped_unreadable: collection.skipped_unreadable,
-    files_omitted_by_limit: collection.omitted_by_limit,
-  };
-  let totalBytes = 0;
-
-  for (const file of collection.files) {
-    if (file.bytes > config.maxFileBytes) continue;
-    if (totalBytes + file.bytes > config.maxTotalBytes) break;
-
-    const buffer = await readFile(file.absolute_path).catch(() => null);
-    if (!buffer) {
-      counts.files_skipped_unreadable += 1;
-      continue;
-    }
-    totalBytes += buffer.byteLength;
-    if (isProbablyBinary(buffer)) {
-      counts.files_skipped_binary += 1;
-      continue;
-    }
-
-    counts.files_scanned += 1;
-    const lines = splitLines(buffer.toString("utf8"));
-    for (const chunk of chunkLines(lines, config.chunkLines, config.chunkOverlap)) {
-      const scored = scoreChunk({ query, queryTokens, file, lines, chunk });
-      counts.chunks_scored += 1;
-      if (scored.score > 0) candidates.push(scored);
-    }
-  }
-
-  const results = candidates
-    .sort((left, right) => right.score - left.score || left.path.localeCompare(right.path))
-    .slice(0, config.limit)
-    .map((candidate, index) => ({
-      rank: index + 1,
-      path: candidate.path,
-      absolute_path: candidate.absolute_path,
-      line_start: candidate.line_start,
-      line_end: candidate.line_end,
-      symbol: candidate.symbol,
-      score: Number(candidate.score.toFixed(4)),
-      rank_signals: candidate.rank_signals,
-      snippet: candidate.snippet,
-    }));
-  counts.chunks_returned = results.length;
-
-  return {
-    schema_version: 1,
-    ok: true,
-    status: "ok",
-    product_tool: productTool,
-    mode: "hybrid",
-    backend: "local-hybrid-lexical",
-    query,
-    root,
-    results,
-    counts,
-    limits: {
-      limit: config.limit,
-      chunk_lines: config.chunkLines,
-      chunk_overlap: config.chunkOverlap,
-      max_files: config.maxFiles,
-      max_file_bytes: config.maxFileBytes,
-      max_total_bytes: config.maxTotalBytes,
-    },
-    formatting: {
-      style: "ranked-code-neighborhood",
-      note: "Local ranking uses term overlap, phrase, path, and symbol boosts. Native embedding or graph search can be layered behind the same tool shape.",
     },
   };
 }
@@ -442,64 +303,6 @@ function toLineResult({ file, lines, lineIndex, column, matchText, contextLines 
   };
 }
 
-function scoreChunk({ query, queryTokens, file, lines, chunk }) {
-  const chunkLinesValue = lines.slice(chunk.start, chunk.end);
-  const text = chunkLinesValue.join("\n");
-  const lowerText = text.toLowerCase();
-  const pathLower = file.relative_path.toLowerCase();
-  const symbol = nearestSymbol(lines, chunk.start) ?? nearestSymbol(lines, chunk.end - 1);
-  const symbolLower = String(symbol ?? "").toLowerCase();
-  const tokenCounts = countTokens(lowerText);
-  const matchedTerms = [];
-  let termScore = 0;
-  let pathBoost = 0;
-  let symbolBoost = 0;
-
-  for (const token of queryTokens) {
-    const count = tokenCounts.get(token) ?? 0;
-    if (count > 0) {
-      matchedTerms.push(token);
-      termScore += Math.log1p(count) * (token.length >= 6 ? 1.35 : 1);
-    }
-    if (pathLower.includes(token)) pathBoost += 0.75;
-    if (symbolLower.includes(token)) symbolBoost += 1.1;
-  }
-
-  const phraseBoost = lowerText.includes(query.toLowerCase()) ? 3 : 0;
-  const densityPenalty = Math.log2(Math.max(12, tokenize(lowerText).length));
-  const score = (termScore + pathBoost + symbolBoost + phraseBoost) / densityPenalty;
-
-  return {
-    path: file.relative_path,
-    absolute_path: file.absolute_path,
-    line_start: chunk.start + 1,
-    line_end: chunk.end,
-    symbol,
-    score,
-    rank_signals: {
-      matched_terms: matchedTerms,
-      term_score: Number(termScore.toFixed(4)),
-      phrase_boost: phraseBoost,
-      path_boost: Number(pathBoost.toFixed(4)),
-      symbol_boost: Number(symbolBoost.toFixed(4)),
-    },
-    snippet: renderExcerpt(contextSlice(lines, chunk.start, chunk.end, 180), chunk.start + 1),
-  };
-}
-
-function chunkLines(lines, chunkLinesValue, overlapValue) {
-  if (!lines.length) return [];
-  const size = Math.max(8, chunkLinesValue);
-  const overlap = Math.min(Math.max(0, overlapValue), size - 1);
-  const chunks = [];
-  for (let start = 0; start < lines.length; start += size - overlap) {
-    const end = Math.min(lines.length, start + size);
-    chunks.push({ start, end });
-    if (end >= lines.length) break;
-  }
-  return chunks;
-}
-
 function contextSlice(lines, start, end, maxChars = 320) {
   return lines.slice(start, end).map((text, offset) => ({
     number: start + offset + 1,
@@ -541,27 +344,6 @@ function symbolFromLine(text) {
     if (match) return `${match[1]}: ${truncateLine(text, 180)}`;
   }
   return null;
-}
-
-function significantTokens(text) {
-  const tokens = tokenize(text).filter((token) => token.length > 1 && !STOP_WORDS.has(token));
-  return [...new Set(tokens)].slice(0, 40);
-}
-
-function tokenize(text) {
-  return String(text)
-    .toLowerCase()
-    .split(/[^a-z0-9_$-]+/u)
-    .map((token) => token.trim())
-    .filter(Boolean);
-}
-
-function countTokens(text) {
-  const counts = new Map();
-  for (const token of tokenize(text)) {
-    counts.set(token, (counts.get(token) ?? 0) + 1);
-  }
-  return counts;
 }
 
 function searchText(input) {

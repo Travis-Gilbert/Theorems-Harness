@@ -70,30 +70,9 @@ The tenant probe must expose per-tenant `quotas`, `concurrency_limits`,
 `queue_isolation`, `rate_limits`, `storage_namespaces`, and
 `noisy_neighbor_protection`.
 
-## Index Context
-
-`index_context` is healthy when it returns `status: "ok"` and a non-empty
-`top_context` array for known indexed queries. With reranker configuration,
-`fusion.mode` should be `learned_listwise_reranker` for listwise services or
-`learned_cross_encoder_reranker` when only a cross-encoder is configured.
-`weighted_rrf` is acceptable only as an explicit fallback with
-`fusion.reranker.status` explaining whether the learned reranker was not
-configured or failed. The payload must also include a `cache` object with
-`status` of `miss`, `stored`, `hit`, or `bypass`.
-
-The product fallback cache is process-local. A deployed MCP service can swap the
-same stable cache key into Valkey cache-aside for recomputable context packets.
-Do not use this cache for dispatch, coordination truth, or durable memory writes.
-
-## Receipts
-
-Receipt events hash the prompt instead of storing it. By default explicit
-receipt writes go to `.theorems-harness/receipts.jsonl` under the provided cwd,
-or to `THEOREMS_HARNESS_RECEIPT_LOG` when that environment variable is set.
-
 ## Scorecards
 
-`scorecards/capability-scorecards.json` names target metrics and current
-evidence. Keep it honest: mark capabilities as `unmeasured`, `degraded`,
-`measured-local`, or `below-target` rather than treating every manifest entry as
-production-ready.
+`scorecards/capability-scorecards.json` names target metrics and recorded
+evidence. The generated package can report this file, but the values do not
+prove that a capability was exercised in a deployed host session. Keep each
+status tied to its actual evidence.

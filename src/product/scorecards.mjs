@@ -1,29 +1,32 @@
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
-import { loadCapabilityManifest, productRoot } from "./load-manifest.mjs";
+const productRoot = resolve(fileURLToPath(new URL("../..", import.meta.url)));
 
-export async function loadCapabilityScorecards(root = productRoot(), options = {}) {
-  const manifest = options.manifest ?? (await loadCapabilityManifest(root));
+export async function loadCapabilityScorecards(root = productRoot, options = {}) {
+  const manifest = options.manifest ?? JSON.parse(
+    await readFile(resolve(root, "capabilities/capability-manifest.json"), "utf8"),
+  );
   const configured = JSON.parse(
     await readFile(resolve(root, "scorecards/capability-scorecards.json"), "utf8"),
   );
-  const configuredById = configured.capabilities ?? {};
+  const capabilityFiles = await Promise.all(manifest.capabilities.map((path) => readCapability(root, path)));
   const capabilities = Object.fromEntries(
-    manifest.capabilities.map((capability) => [
-      capability.id,
-      {
+    capabilityFiles.map((contents) => {
+      const capability = JSON.parse(contents);
+      const card = configured.capabilities?.[capability.id] ?? {};
+      return [capability.id, {
         status: "unmeasured",
         current: {},
         targets: configured.default_targets,
         evidence: [],
-        ...(configuredById[capability.id] ?? {}),
+        ...card,
         delivery: capability.delivery,
         must_be_visible_to_model: Boolean(capability.must_be_visible_to_model),
-      },
-    ]),
+      }];
+    }),
   );
-
   return {
     schema_version: configured.schema_version,
     product: manifest.product,
@@ -31,6 +34,11 @@ export async function loadCapabilityScorecards(root = productRoot(), options = {
     default_targets: configured.default_targets,
     capabilities,
   };
+}
+
+async function readCapability(root, path) {
+  const resolved = resolve(root, "capabilities", path.replace(/^\.\//, ""));
+  return readFile(resolved, "utf8");
 }
 
 export function scorecardSummary(scorecards) {

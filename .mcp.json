@@ -9,7 +9,7 @@
     },
     "theorems-harness-remote": {
       "type": "http",
-      "url": "https://api.theoremharness.com/mcp",
+      "url": "https://travis-theorem-personal.fly.dev/mcp",
       "headers": {
         "Authorization": "Bearer ${THEOREM_HARNESS_API_TOKEN}"
       }
